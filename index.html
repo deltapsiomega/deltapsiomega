@@ -5,12 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Library</title>
 <style>
-:root{--text:#f2f2f2;--radius:12px;--min:180px;--font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+:root{--text:#f2f2f2;--radius:12px;--min:180px;--font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--as-btn:11px;--as-chip:11px;--as-sw:20px;--as-pad:3px 8px;--as-face:200px}
 *{box-sizing:border-box}
 body{margin:0;color:var(--text);font-family:var(--font);min-height:100vh}
 #bg{position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center}
 #dim{position:fixed;inset:0;z-index:-1;background:#000}
 header{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:start;padding:18px 24px;background:rgba(0,0,0,var(--hbg,.45));backdrop-filter:blur(10px)}
+.hdr-left{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.ver{font-size:11px;opacity:.55;letter-spacing:.04em}
+#libSearch{width:min(240px,42vw);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.35);color:inherit;font:inherit;font-size:13px}
+#libSearch::placeholder{opacity:.55}
+#searchHits{position:absolute;z-index:12;top:100%;left:0;margin-top:4px;width:min(320px,90vw);max-height:50vh;overflow:auto;background:rgba(18,20,26,.97);border:1px solid #444;border-radius:10px;padding:6px;display:none}
+#searchHits.on{display:block}
+#searchHits button{display:block;width:100%;text-align:left;margin:2px 0;font-size:13px}
+.as-switch button{font-size:var(--as-btn)!important;padding:var(--as-pad)!important}
+.as-switch button img{width:var(--as-sw)!important;height:var(--as-sw)!important}
+.chips button{font-size:var(--as-chip)!important;padding:var(--as-pad)!important}
+.asb .row button{font-size:var(--as-btn)!important;padding:var(--as-pad)!important}
+.asb>img,.asb img:first-child{width:var(--as-face)!important;height:var(--as-face)!important}
 .brand{text-align:center}
 #tools{justify-self:end;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 header h1{margin:0;font-size:calc(clamp(26px,4vw,40px)*var(--hts,1));line-height:1.1}
@@ -191,7 +203,15 @@ body.onasst #asst{display:none}
 <body>
 <div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
-  <div><button id="sbt" title="Show or hide the folder list">☰ Folders</button> <span id="status"></span></div>
+  <div class="hdr-left">
+    <div class="ver">Library · V10.7</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative">
+      <button id="sbt" title="Show or hide the folder list">☰ Folders</button>
+      <input id="libSearch" type="search" placeholder="Search library…" autocomplete="off">
+      <div id="searchHits"></div>
+      <span id="status"></span>
+    </div>
+  </div>
   <div class="brand"><h1 id="title"><a id="home" href="#/" title="Back to the home page" style="color:inherit;text-decoration:none">My Library</a></h1>
     <label class="sur">surprise me <select id="sur"></select></label></div>
   <span id="tools"></span>
@@ -414,6 +434,43 @@ function goHome(e){
 $('#home').onclick=goHome;
 $('#sbt').onclick=()=>{const on=!document.body.classList.contains('nosb');setT('sb',on?0:1)};
 function render(){stopAuto();document.body.classList.toggle('onasst',location.hash==='#/assistant');render0();applyV()}
+
+function runLibSearch(q){
+  const box = $('#searchHits');
+  if(!box) return;
+  q = (q||'').trim().toLowerCase();
+  if(!q || !S.lib){ box.className=''; box.innerHTML=''; return; }
+  const hits = [];
+  const roots = (typeof GS!=='undefined' && GS && GS.length) ? GS : (typeof groups==='function' ? groups() : []);
+  const walk = (n, trail) => {
+    const nm = F(n.id).name || n.name || '';
+    const path = trail.concat(nm);
+    if(nm.toLowerCase().includes(q)) hits.push({type:'folder', id:n.id, label:path.join(' › ')});
+    (n.items||[]).forEach((m,i) => {
+      if((m.n||'').toLowerCase().includes(q)) hits.push({type:'file', node:n, i, m, label:path.join(' › ')+' / '+m.n});
+    });
+    (n.kids||[]).forEach(k => walk(k, path));
+  };
+  roots.forEach(n => walk(n, []));
+  box.innerHTML = '';
+  hits.slice(0,40).forEach(h => {
+    box.append(el('button', {onclick: () => {
+      box.className='';
+      const inp=$('#libSearch'); if(inp) inp.value='';
+      if(h.type==='folder') goto(h.id);
+      else openLb(h.node, h.i);
+    }}, (h.type==='folder'?'📁 ':'📄 ') + h.label));
+  });
+  if(!hits.length) box.append(el('p', {class:'h', style:'margin:6px'}, 'No matches'));
+  box.className = 'on';
+}
+document.addEventListener('input', e => { if(e.target && e.target.id==='libSearch') runLibSearch(e.target.value); });
+document.addEventListener('click', e => {
+  const box=$('#searchHits'); if(!box) return;
+  if(e.target && (e.target.id==='libSearch' || box.contains(e.target))) return;
+  box.className='';
+});
+
 function render0(){
   const gs=groups();applyTheme();renderTools();renderSurprise(gs);renderSide();const app=$('#app');app.innerHTML='';
   if(!S.lib){app.append(el('div',{class:'empty'},el('h2',{},'Your Drive library'),el('p',{},owner?'Link your Google Drive to turn the folders inside your “DELTA” folder into a browsable library. Access is read-only — this site can never change or delete anything.':'No library has been published yet.'),owner?el('button',{class:'pri',onclick:connect},'Link Google Drive'):null));return}
@@ -493,6 +550,32 @@ const DEFAULT_ASSISTANTS = [
       "Look who needs his whore again. I’ve been thinking about your cock all day. Tell me what to find or what picture of me you want and I’ll obey.",
       "You’re here. Perfect. I’m already on my knees in my head. Order me around — files, nudes of me, whatever gets you off."
     ]
+  },
+  {
+    id: 'marciana',
+    name: 'Marciana',
+    color: '#e85d75',
+    role: 'Flustered gym crush',
+    personality: 'Easily embarrassed but secretly eager. Soft voice, heavy breathing when flustered, tries to act composed. Touches her jacket when nervous. Obsessed with being useful and noticed. Explicit once she warms up.',
+    traits: 'flustered,needy,sweet,explicit',
+    greets: [
+      "H-hey… I wasn’t waiting. Okay, maybe a little. What do you need me to dig up?",
+      "You’re looking at me like that again… F-fine. Files, talk, whatever you want. Just don’t stare too hard."
+    ],
+    avatarFile: 'marciana.jpg'
+  },
+  {
+    id: 'malfoid',
+    name: 'Malfoid',
+    color: '#3ddc84',
+    role: 'Dominant green-eyed menace',
+    personality: 'Confident, teasing, slightly sadistic. Talks like she already owns the room. Calls you out, keeps score of favors. Explicit and physical. Competitive with the other girls.',
+    traits: 'confident,teasing,explicit,dominant',
+    greets: [
+      "There you are. Don’t waste my time — tell me what you want found, or ask nicely if you want me closer.",
+      "I skipped better plans for this. Make it worth it. Files, reactions, or something filthier?"
+    ],
+    avatarFile: 'Malfoid pg.2.webp'
   }
 ];
 
@@ -501,10 +584,17 @@ function loadAssistants(){
     const raw = localStorage.getItem(ASSISTANTS_KEY);
     if(raw){
       const list = JSON.parse(raw);
-      if(Array.isArray(list) && list.length) return list.map(normalizeAss);
+      if(Array.isArray(list) && list.length){
+        const mapped = list.map(normalizeAss);
+        const have = new Set(mapped.map(a => a.id));
+        DEFAULT_ASSISTANTS.forEach(d => {
+          if(!have.has(d.id)) mapped.push(normalizeAss({...d, greets:[...(d.greets||[])]}));
+        });
+        return mapped;
+      }
     }
   }catch{}
-  return DEFAULT_ASSISTANTS.map(a => ({...a, greets: [...a.greets]}));
+  return DEFAULT_ASSISTANTS.map(a => normalizeAss({...a, greets:[...(a.greets||[])]}));
 }
 function normalizeAss(a){
   return {
@@ -514,7 +604,8 @@ function normalizeAss(a){
     role: a.role || 'Your assistant',
     personality: a.personality || 'Helpful, eager, conversational. Recommends files and chats in character.',
     traits: a.traits || 'eager,chatty',
-    greets: (Array.isArray(a.greets) && a.greets.length ? a.greets : ['Hey. What do you need?']).map(g => String(g).slice(0,400))
+    greets: (Array.isArray(a.greets) && a.greets.length ? a.greets : ['Hey. What do you need?']).map(g => String(g).slice(0,400)),
+    avatarFile: a.avatarFile || ''
   };
 }
 function saveAssistants(){
@@ -578,6 +669,7 @@ function getAssAvatar(a){
     if(t['av_'+a.id]) return t['av_'+a.id];
   }
   if(t['av_'+a.id]) return t['av_'+a.id];
+  if(a.avatarFile) return a.avatarFile;
   return 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="#333" width="200" height="200"/><text x="100" y="105" text-anchor="middle" fill="#aaa" font-size="18">${(a.name||'?').slice(0,12)}</text></svg>`);
 }
 
@@ -1250,7 +1342,22 @@ function deleteCurrentAssistant(){
   assistantPage();
 }
 
+
+function asSizes(){
+  const t = (S.theme && S.theme.asst) || {};
+  return {btn:t.uiBtn||11, chip:t.uiChip||11, sw:t.uiSw||20, face:t.uiFace||200, padY:t.uiPadY||3, padX:t.uiPadX||8};
+}
+function applyAsSize(){
+  const s = asSizes();
+  const r = document.documentElement.style;
+  r.setProperty('--as-btn', s.btn+'px');
+  r.setProperty('--as-chip', s.chip+'px');
+  r.setProperty('--as-sw', s.sw+'px');
+  r.setProperty('--as-face', s.face+'px');
+  r.setProperty('--as-pad', s.padY+'px '+s.padX+'px');
+}
 function assistantPage(){
+  applyAsSize();
   const app = $('#app');
   app.innerHTML = '';
   if(!chat.length) chat.push({who:'her', text: pick(currentAss.greets || ['Hey.'])});
@@ -1318,6 +1425,13 @@ function assistantPage(){
             el('p', {class:'h'}, 'Page look'),
             ...fColor('Border color', t.border || currentAss.color, v => { t.border = v; save(); assistantPage(); }),
             ...fColor('Background tint', t.bg || '#1a1a22', v => { t.bg = v; save(); assistantPage(); }),
+            el('p', {class:'h'}, 'UI sizes (all assistants)'),
+            ...fRange('Button text size', t.uiBtn||11, 9, 18, 1, v => { t.uiBtn=v; save(); applyAsSize(); }),
+            ...fRange('Chip text size', t.uiChip||11, 9, 18, 1, v => { t.uiChip=v; save(); applyAsSize(); }),
+            ...fRange('Switcher avatar size', t.uiSw||20, 14, 40, 1, v => { t.uiSw=v; save(); applyAsSize(); }),
+            ...fRange('Face avatar size', t.uiFace||200, 80, 300, 4, v => { t.uiFace=v; save(); applyAsSize(); assistantPage(); }),
+            ...fRange('Button padding Y', t.uiPadY||3, 2, 14, 1, v => { t.uiPadY=v; save(); applyAsSize(); }),
+            ...fRange('Button padding X', t.uiPadX||8, 4, 22, 1, v => { t.uiPadX=v; save(); applyAsSize(); }),
             el('p', {class:'h'}, 'Danger'),
             el('button', {onclick: () => { closePanel(); deleteCurrentAssistant(); }}, 'Delete assistant')
           ];
