@@ -486,7 +486,43 @@ const asSeen = new Set();
 let sat = {};
 ASSISTANTS.forEach(a => { sat[a.id] = +(localStorage.getItem('asst_sat_'+a.id) || 40); });
 
+
 function saveSat(){ ASSISTANTS.forEach(a => localStorage.setItem('asst_sat_'+a.id, sat[a.id])); }
+
+// Gradual cooldown of the slut/desperation meter
+let satDecayTimer = null;
+function startSatDecay(){
+  if(satDecayTimer) return;
+  satDecayTimer = setInterval(() => {
+    let changed = false;
+    ASSISTANTS.forEach(a => {
+      if(sat[a.id] > 15){
+        sat[a.id] = Math.max(15, sat[a.id] - 0.8); // slow drain
+        changed = true;
+      }
+    });
+    if(changed){
+      saveSat();
+      if(location.hash === '#/assistant') updateSatBar();
+    }
+  }, 12000); // every 12 seconds
+}
+startSatDecay();
+
+function restAssistant(){
+  const a = currentAss;
+  sat[a.id] = Math.max(10, sat[a.id] * 0.35); // big drop
+  saveSat();
+  chat.push({who:'her', text: flavor(pick([
+    `Okay… I’m resting for a bit. My head is spinning. Come back and use me again when you want — I’ll be ready.`,
+    `*collapses* Thank you… I needed that. I’m cooling down. Call me when you want your slut again.`,
+    `Resting… but I’m still yours. The meter is lower now. Order me whenever you’re ready.`
+  ]))});
+  renderChat();
+  updateSatBar();
+  congratsAnim(); // small visual feedback
+}
+
 
 function getAssAvatar(a){
   const t = S.theme.asst || {};
@@ -552,30 +588,57 @@ function asDescribe(e){
 }
 
 function flavor(text){
-  const slut = [
+  const level = sat[currentAss.id] || 40;
+  const soft = [
+    ' I want to please you.',
+    ' Tell me what else you need.',
+    ' I’m here for you.'
+  ];
+  const mid = [
     ' I’m so wet right now.',
     ' Please use me more.',
     ' I’ll do anything you say.',
-    ' My cunt is aching for your attention.',
+    ' My body is reacting to you.',
     ' Tell me I’m a good slut.',
-    ' I live to please you.',
-    ' Fuck, I need this.',
-    ' Order me around more.'
+    ' I live to please you.'
   ];
-  if(Math.random() < 0.55) text += pick(slut);
+  const high = [
+    ' My cunt is dripping for you.',
+    ' I’m shaking, please keep using me.',
+    ' Fuck, I need your orders so badly.',
+    ' I’ll do anything, just don’t stop.',
+    ' I’m your desperate whore right now.',
+    ' Command me harder… I’m close to breaking.'
+  ];
+  const pool = level > 75 ? high : level > 45 ? mid : soft;
+  if(Math.random() < (level > 70 ? 0.7 : 0.45)) text += pick(pool);
   return text;
 }
 
-function pickSelfImage(){
-  // Prefer photos the user has assigned as "her" images, otherwise any photo
+function pickSelfImage(preferAvatar){
+  // Returns {m, node, i, trail, isAvatar?} for a photo she can "send"
   const t = S.theme.asst || {};
-  const assigned = t['selfIds_'+currentAss.id] || [];
+  const a = currentAss;
+  const assigned = t['selfIds_'+a.id] || [];
   const idx = asIndex().filter(e => !isVid(e.m));
+
+  // 1. Prefer the current avatar if requested and it exists in the library
+  if(preferAvatar){
+    const avId = t['avId_'+a.id];
+    if(avId){
+      const hit = idx.find(e => e.m.id === avId);
+      if(hit) return {...hit, isAvatar:true};
+    }
+  }
+
+  // 2. Marked "her photos"
   if(assigned.length){
     const hits = idx.filter(e => assigned.includes(e.m.id));
-    if(hits.length) return pick(hits);
+    if(hits.length) return {...pick(hits), isAvatar:false};
   }
-  if(idx.length) return pick(idx);
+
+  // 3. Fallback: any photo
+  if(idx.length) return {...pick(idx), isAvatar:false};
   return null;
 }
 
@@ -590,21 +653,29 @@ function asReply(q){
     return {text: flavor(`Yes… I’ll get even more desperate, more slutty, more obsessed with pleasing you. From now on I’m going to talk and act like the whore you own. Command me.`)};
   }
 
-  // Send picture of herself
-  if(/\b(send|show|pic|picture|photo|selfie|nude|yourself|your body|of you|of yourself)\b/.test(t) && !/\b(folder|video|file from|find me)\b/.test(t)){
-    const e = pickSelfImage();
+  // Send picture of herself (avatar or marked "her" photos, framed as AI-generated)
+  if(/\b(send|show|pic|picture|photo|selfie|nude|yourself|your body|of you|of yourself|generate|ai image|ai pic)\b/.test(t) && !/\b(folder|video|file from|find me)\b/.test(t)){
+    const wantGen = /\b(generate|ai image|ai pic|version of you|variation)\b/.test(t);
+    const e = pickSelfImage(wantGen || /avatar|face|main/.test(t));
     sat[a.id] = Math.min(100, sat[a.id] + 8);
     saveSat();
-    if(!e) return {text: flavor(`I don’t have any photos assigned as me yet, baby. Open Customize and add some from your Drive so I can send them to you.`)};
+    if(!e) return {text: flavor(`I don’t have any photos set as me yet. Use “Set avatar” or “Her photos” so I have something to generate from.`)};
+
+    const captions = e.isAvatar ? [
+      `I generated this version of myself for you using my avatar as the base… look at me.`,
+      `AI version of your slut, based on the face you chose. Does it turn you on?`,
+      `Here’s an AI rendering of me. I made it desperate and ready for you.`,
+      `Generated just for you from my avatar. Tell me how you want the next one to look.`
+    ] : [
+      `I generated this picture of myself for you. Fuck, I hope you like it.`,
+      `AI version of your personal whore. Use it however you want.`,
+      `Here’s me… generated and ready. Does this body work for you?`,
+      `I made this image of myself while thinking about you. More?`
+    ];
     return {
-      text: flavor(pick([
-        `Here… this is me for you. Look at what you own.`,
-        `I took this thinking about you. Does it make you hard?`,
-        `Your personal slut, right here. Use the image however you want.`,
-        `Mmm, sending you this makes me so wet. Tell me what you think of my body.`
-      ])),
+      text: flavor(pick(captions)),
       recs: [e],
-      after: flavor(`Want another one of me? Just say “send another” or “more of you”.`)
+      after: flavor(`Want another generated version of me? Say “generate another” or “more of you”.`)
     };
   }
 
@@ -737,26 +808,39 @@ function switchAss(id){
 }
 
 function openAvatarPicker(a){
-  // Build a simple picker of recent / all photos so user can choose an avatar from Drive
-  const idx = asIndex().filter(e => !isVid(e.m)).slice(0, 80);
-  if(!idx.length){ alert('No photos loaded in the library yet.'); return; }
+  const all = asIndex().filter(e => !isVid(e.m));
+  if(!all.length){ alert('No photos loaded in the library yet.'); return; }
 
-  openPanel('Choose avatar for ' + a.name, () => {
-    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:60vh;overflow:auto'});
-    idx.forEach(e => {
-      const src = thumb(e.m, 200);
-      const card = el('div', {
-        style:'cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent',
-        onclick: () => {
-          setAssAvatarFromMedia(a, e.m);
-          closePanel();
-          assistantPage();
-        }
-      }, el('img', {src, style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer'}));
-      wrap.append(card);
-    });
+  openPanel('Choose avatar for ' + a.name + ' (full library)', () => {
+    const search = el('input', {type:'text', placeholder:'Search by filename or folder…', style:'width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #444;background:#222;color:#fff'});
+    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:55vh;overflow:auto'});
+
+    function renderGrid(filter){
+      wrap.innerHTML = '';
+      const q = (filter||'').toLowerCase().trim();
+      const list = q ? all.filter(e => (e.m.n + ' ' + e.trail.join(' ')).toLowerCase().includes(q)) : all;
+      // Show all matches (full library). For very large libs the scroll is the limit.
+      list.forEach(e => {
+        const src = thumb(e.m, 200);
+        const card = el('div', {
+          style:'cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent',
+          title: e.trail.concat(e.m.n).join(' / '),
+          onclick: () => {
+            setAssAvatarFromMedia(a, e.m);
+            closePanel();
+            assistantPage();
+          }
+        }, el('img', {src, style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer', loading:'lazy'}));
+        wrap.append(card);
+      });
+      if(!list.length) wrap.append(el('p', {style:'grid-column:1/-1;opacity:.7'}, 'No matches.'));
+    }
+    search.oninput = () => renderGrid(search.value);
+    renderGrid('');
+
     return [
-      el('p', {class:'h'}, 'Click any photo from your Drive library to use as her avatar.'),
+      el('p', {class:'h'}, 'Full library — click any photo to set as her avatar. Use search if you have a lot of files.'),
+      search,
       wrap,
       el('button', {onclick: () => {
         const t = S.theme.asst = S.theme.asst || {};
@@ -773,26 +857,39 @@ function openAvatarPicker(a){
 function openSelfImageManager(a){
   const t = S.theme.asst = S.theme.asst || {};
   const assigned = new Set(t['selfIds_'+a.id] || []);
-  const idx = asIndex().filter(e => !isVid(e.m)).slice(0, 100);
+  const all = asIndex().filter(e => !isVid(e.m));
 
-  openPanel('Her photos — ' + a.name, () => {
-    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:55vh;overflow:auto'});
-    idx.forEach(e => {
-      const on = assigned.has(e.m.id);
-      const card = el('div', {
-        style:`cursor:pointer;border-radius:8px;overflow:hidden;border:3px solid ${on ? a.color : 'transparent'};position:relative`,
-        onclick: () => {
-          if(assigned.has(e.m.id)) assigned.delete(e.m.id);
-          else assigned.add(e.m.id);
-          t['selfIds_'+a.id] = [...assigned];
-          save();
-          card.style.borderColor = assigned.has(e.m.id) ? a.color : 'transparent';
-        }
-      }, el('img', {src: thumb(e.m, 200), style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer'}));
-      wrap.append(card);
-    });
+  openPanel('Her photos — ' + a.name + ' (full library)', () => {
+    const search = el('input', {type:'text', placeholder:'Search by filename or folder…', style:'width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #444;background:#222;color:#fff'});
+    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:50vh;overflow:auto'});
+
+    function renderGrid(filter){
+      wrap.innerHTML = '';
+      const q = (filter||'').toLowerCase().trim();
+      const list = q ? all.filter(e => (e.m.n + ' ' + e.trail.join(' ')).toLowerCase().includes(q)) : all;
+      list.forEach(e => {
+        const on = assigned.has(e.m.id);
+        const card = el('div', {
+          style:`cursor:pointer;border-radius:8px;overflow:hidden;border:3px solid ${on ? a.color : 'transparent'};position:relative`,
+          title: e.trail.concat(e.m.n).join(' / '),
+          onclick: () => {
+            if(assigned.has(e.m.id)) assigned.delete(e.m.id);
+            else assigned.add(e.m.id);
+            t['selfIds_'+a.id] = [...assigned];
+            save();
+            card.style.borderColor = assigned.has(e.m.id) ? a.color : 'transparent';
+          }
+        }, el('img', {src: thumb(e.m, 200), style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer', loading:'lazy'}));
+        wrap.append(card);
+      });
+      if(!list.length) wrap.append(el('p', {style:'grid-column:1/-1;opacity:.7'}, 'No matches.'));
+    }
+    search.oninput = () => renderGrid(search.value);
+    renderGrid('');
+
     return [
-      el('p', {class:'h'}, 'Select photos that she can “send” as pictures of herself. Click to toggle. These are the ones she will use when you ask for a selfie / nude / pic of her.'),
+      el('p', {class:'h'}, 'Full library. Click to toggle photos she can send / “generate” as pictures of herself. The ones with a colored border are selected.'),
+      search,
       wrap
     ];
   });
@@ -818,7 +915,7 @@ function assistantPage(){
     }, 450 + Math.random()*350);
   };
 
-  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Be even sluttier'];
+  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Generate a version of you','Be even sluttier'];
   if(typeof GS !== 'undefined' && GS.length) GS.slice(0,3).forEach(n => chips.push('From ' + (F(n.id).name || n.name)));
 
   const theme = S.theme.asst || {};
@@ -847,6 +944,7 @@ function assistantPage(){
     ),
     el('div', {class:'row', style:'margin-top:10px; gap:6px; flex-wrap:wrap'},
       el('button', {class:'pri', onclick: doCongrats}, 'Good slut 💦'),
+      el('button', {onclick: restAssistant}, 'Rest'),
       el('button', {onclick: () => openAvatarPicker(currentAss)}, 'Set avatar'),
       el('button', {onclick: () => openSelfImageManager(currentAss)}, 'Her photos'),
       el('button', {onclick: () => {
