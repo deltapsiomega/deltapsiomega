@@ -160,18 +160,25 @@ body.onasst #asst{display:none}
 .rec{display:flex;gap:12px;margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.35)}
 .rec img{width:120px;height:90px;object-fit:cover;border-radius:8px;flex:none;background:#222}
 .rec b{display:block}.rec p{margin:4px 0;font-size:13px;opacity:.9}.rec .row{display:flex;gap:6px;flex-wrap:wrap}
-.chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px}
 .chat form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.12)}
 .chat input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.35);color:inherit;font:inherit}
 @media(max-width:760px){.as{grid-template-columns:1fr}.asb img{width:110px;height:110px}.asb{position:static}.rec img{width:90px;height:70px}}
 
-.as-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;grid-column:1/-1}
-.as-switch button{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;border:2px solid transparent;background:rgba(255,255,255,.1);font-size:13px;cursor:pointer}
-.as-switch button img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.as-switch{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;grid-column:1/-1;align-items:center}
+.as-switch button{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:14px;border:1.5px solid transparent;background:rgba(255,255,255,.1);font-size:11px;cursor:pointer;line-height:1.2}
+.as-switch button img{width:20px;height:20px;border-radius:50%;object-fit:cover}
 .as-switch button.on{border-color:var(--c,#ff7ab8);background:rgba(255,255,255,.2)}
-.sat-wrap{margin-top:10px;text-align:left}
-.sat-track{height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:4px}
+.asb .row button{padding:4px 8px;font-size:11px;border-radius:6px}
+.chips{gap:4px;padding:6px 8px}
+.chips button{padding:4px 8px;font-size:11px;border-radius:6px}
+.sat-wrap{margin-top:8px;text-align:left}
+.sat-track{height:6px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:3px}
 .sat-fill{height:100%;width:35%;background:#ff7ab8;border-radius:4px;transition:width .4s ease,background .3s}
+.msg .who{font-size:11px;opacity:.65;margin-bottom:2px}
+.react-strip{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.react-strip img{height:56px;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer;opacity:.85;flex:none}
+.react-strip img:hover{opacity:1;outline:2px solid var(--ac,#ff7ab8)}
 .heart-float{position:fixed;font-size:22px;pointer-events:none;animation:floatUp 1.5s ease-out forwards;z-index:40}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.4)}}
 .asb.happy img{animation:happyBob .6s ease}
@@ -519,6 +526,9 @@ let currentAss = ASSISTANTS[0];
 let chat = [];
 let asLast = null;
 const asSeen = new Set();
+let lastShared = null; // {m, node, i, trail} last media shown in chat or reacted to
+let groupMode = false; // other assistants can chime in
+
 let sat = {};
 ASSISTANTS.forEach(a => { sat[a.id] = +(localStorage.getItem('asst_sat_'+a.id) || 40); });
 
@@ -697,12 +707,166 @@ function voiceLine(kind){
   return pick(banks[kind] || banks.greet);
 }
 
+
+function others(){ return ASSISTANTS.filter(a => a.id !== currentAss.id); }
+function otherNames(){ return others().map(a => a.name); }
+
+function mediaLabel(e){
+  if(!e || !e.m) return 'this';
+  const name = (e.m.n||'').replace(/\.[^.]+$/,'');
+  const kind = isVid(e.m) ? 'video' : 'photo';
+  const path = (e.trail||[]).join(' › ');
+  return `${kind} “${name}”` + (path ? ` (${path})` : '');
+}
+
+function reactToMedia(e, mode){
+  // mode: watch | react | together
+  const a = currentAss;
+  const traits = traitList(a);
+  const need = traits.some(t => /needy|desperate|explicit|filthy/.test(t));
+  const conf = traits.some(t => /confident|teasing/.test(t));
+  const soft = traits.some(t => /sweet|polite/.test(t));
+  const vid = e && e.m && isVid(e.m);
+  const label = mediaLabel(e);
+  let lines;
+  if(mode === 'watch' || mode === 'together'){
+    lines = vid ? [
+      `Okay — watching ${label} with you. I’m right here; tell me when something hits.`,
+      `Queueing up ${label}. Sit back — I’ll react as we go. Say pause if you want my take on a moment.`,
+      `Watching ${label} together. Don’t mind me getting into it.`
+    ] : [
+      `Looking at ${label} with you. Tell me what you notice and I’ll match.`,
+      `I’ve got ${label} open with you. Point at details and I’ll react.`,
+      `Staying on ${label}. What do you want me to focus on?`
+    ];
+    if(need) lines = lines.map(x => x + ' (I’m already into this.)');
+  } else {
+    lines = vid ? [
+      `${label}… yeah. The motion and framing work. I’d rewatch the peak part.`,
+      `Reacting to ${label}: strong energy. Want me to find similar clips?`,
+      `That ${label.split('“')[0]}hits. Especially if you like this mood.`
+    ] : [
+      `${label} — nice. Composition/subject both work for me.`,
+      `Reacting to ${label}: this is a keeper. Want more like it?`,
+      `Looking at ${label}. I’d pin this if we had a favorites board.`
+    ];
+    if(conf) lines.push(`Honestly? ${label} is exactly my kind of trouble.`);
+    if(soft) lines.push(`Soft take on ${label}: it’s pretty, and I’d stay on it a while.`);
+    if(need) lines.push(`Fuck — ${label} is doing things to me. Don’t stop sharing.`);
+  }
+  return flavor(pick(lines));
+}
+
+function mentionOthers(seedText){
+  const o = others();
+  if(!o.length) return seedText;
+  const who = pick(o);
+  const tags = [
+    ` ${who.name} would lose it over this.`,
+    ` I bet ${who.name} is jealous I’m the one here with you.`,
+    ` Want me to pull ${who.name} in?`,
+    ` ${who.name} and I argued about files like this last time.`,
+    ` Don’t tell ${who.name} I said this first.`
+  ];
+  if(Math.random() < 0.45) return seedText + pick(tags);
+  return seedText;
+}
+
+function groupChime(topic){
+  // short side comments from other assistants
+  const o = others();
+  if(!o.length || !groupMode) return [];
+  const n = Math.min(2, o.length);
+  const chosen = shuf(o).slice(0, n);
+  return chosen.map(a => {
+    const line = pick([
+      `${a.name}: I’m here too — don’t forget me.`,
+      `${a.name}: ${currentAss.name} is right, but I’d pick differently.`,
+      `${a.name}: Sharing is caring. Let me react next.`,
+      `${a.name}: Noted. I’ll stay quiet unless you @ me.`,
+      `${a.name}: ${topic ? 'On “'+topic.slice(0,40)+'” — interested.' : 'Listening in.'}`
+    ]);
+    return {who:'her', text: line, fromId: a.id};
+  });
+}
+
 function asReply(q){
+
   const raw = (q||'').trim();
   const t = raw.toLowerCase();
   const a = currentAss;
   const level = sat[a.id] || 40;
 
+  // Explicit @mentions of other assistants
+  const mentioned = ASSISTANTS.filter(x => {
+    if(x.id === a.id) return false;
+    const n = x.name.toLowerCase();
+    return t.includes('@'+n) || t.split(/[^a-z0-9]+/).includes(n);
+  });
+  if(mentioned.length){
+    const m = mentioned[0];
+    sat[a.id] = Math.min(100, sat[a.id] + 3);
+    saveSat();
+    if(/\b(switch|open|talk to|go to)\b/.test(t)){
+      setTimeout(() => switchAss(m.id), 400);
+      return {text: flavor(`Handing you to ${m.name}…`)};
+    }
+    return {text: flavor(pick([
+      `${m.name}? She’d jump on this. I can keep talking, or say “switch to ${m.name}”.`,
+      `Speaking for ${m.name} a second: she’d want in. Group mode lets her chime for real.`,
+      `${m.name} would tease me for hogging you. Want her here, or stay with me?`
+    ]))};
+  }
+
+  // Watch / react to media together
+  if(/\b(watch (this|with me|together)|react to (this|it|that)|what do you think of (this|it|that)|look at this with me|co-?watch)\b/.test(t) ||
+     (/\b(watch|react)\b/.test(t) && /\b(video|photo|pic|image|this|that)\b/.test(t))){
+    let e = lastShared;
+    if(!e){
+      // try last rec from chat or a random recent media
+      const idx = asIndex();
+      const preferVid = /video|watch|clip/.test(t);
+      const pool = idx.filter(x => preferVid ? isVid(x.m) : true);
+      e = pool.length ? pick(pool) : null;
+    }
+    if(!e) return {text: flavor(`I don’t have a file to react to yet. Ask me for a video/photo first, or open one and say “react to this”.`)};
+    lastShared = e;
+    sat[a.id] = Math.min(100, sat[a.id] + 6);
+    saveSat();
+    const mode = /watch|together|with me/.test(t) ? 'watch' : 'react';
+    const text = mentionOthers(reactToMedia(e, mode));
+    const chimed = groupChime(mediaLabel(e));
+    return {text, recs: [e], after: flavor(`Say “react again”, “watch with me”, or open it. ${otherNames().length? 'You can also @'+otherNames()[0]+'.':''}`), extra: chimed};
+  }
+
+  if(/\b(react again|another reaction|more reactions)\b/.test(t) && lastShared){
+    sat[a.id] = Math.min(100, sat[a.id] + 4);
+    saveSat();
+    return {text: mentionOthers(reactToMedia(lastShared, 'react')), recs: [lastShared]};
+  }
+
+  // Group mode toggle
+  if(/\b(group (mode|chat)|everyone (listen|talk)|let them (talk|chime)|invite (the )?others)\b/.test(t)){
+    groupMode = true;
+    return {text: flavor(`Group mode on — ${otherNames().join(', ') || 'nobody else yet'} can chime in. Say “solo mode” to quiet them.`)};
+  }
+  if(/\b(solo mode|just you|only you|quiet (them|others))\b/.test(t)){
+    groupMode = false;
+    return {text: flavor(`Solo mode. It’s just you and me.`)};
+  }
+
+
+  if(t === 'videos / photos' || t === 'videos/photos'){
+    q = pick(['videos please','photos please']);
+    return asReply(q);
+  }
+  if(t === '@ others' || t === '@others'){
+    groupMode = true;
+    const names = otherNames();
+    return {text: flavor(names.length
+      ? (`I’ll keep ${names.join(', ')} in the loop. @ someone by name, or say “watch with me” on a file.`)
+      : 'No other assistants yet — add one with + New.')};
+  }
   // Personality edits via chat
   if(/\b(be more|act more|make yourself|change your|edit your|personality|sluttier|needier|dirtier|whorier|more desperate|more polite|softer|meaner|filthier)\b/.test(t)){
     sat[a.id] = Math.min(100, sat[a.id] + 8);
@@ -844,16 +1008,20 @@ function asReply(q){
   if(!recs.length) return {text: flavor(`That’s all I have for that. Ask differently, or talk to me.`)};
   asLast = {pool, off: off + recs.length};
   recs.forEach(e => asSeen.add(e.m.id));
+  if(recs[0]) lastShared = recs[0];
   sat[a.id] = Math.min(100, sat[a.id] + 6);
   saveSat();
+  const base = flavor(noMatch ? pick(NOMATCH) : pick(INTRO));
+  const chimed = groupChime('files');
   return {
-    text: flavor(noMatch ? pick(NOMATCH) : pick(INTRO)),
+    text: mentionOthers(base),
     recs,
-    after: flavor(pick(OUTRO))
+    after: flavor(pick(OUTRO)),
+    extra: chimed
   };
 }
 
-function asOpen(e){ if(isVid(e.m) || !isPhotos(e.node)) openLb(e.node, e.i); else sideFile(e.node, e.i); }
+function asOpen(e){ lastShared = e; if(isVid(e.m) || !isPhotos(e.node)) openLb(e.node, e.i); else sideFile(e.node, e.i); }
 
 function recCard(e){
   const m = e.m, src = (isVid(m) && S.vthumbs[m.id]) || thumb(m, 320);
@@ -874,17 +1042,21 @@ function renderChat(){
   const log = $('#chatlog');
   if(!log) return;
   log.innerHTML = '';
-  const av = getAssAvatar(currentAss);
-  chat.forEach(c => log.append(
-    el('div', {class:'msg' + (c.who==='me'?' me':'')},
-      c.who==='her' ? el('img', {src: av, alt:''}) : null,
-      el('div', {},
-        el('div', {class:'bub'}, c.typing ? '…' : c.text),
-        ...(c.recs || []).map(recCard),
-        c.after ? el('div', {class:'bub', style:'margin-top:10px'}, c.after) : null
+  chat.forEach(c => {
+    const speaker = c.fromId ? (ASSISTANTS.find(x => x.id === c.fromId) || currentAss) : currentAss;
+    const av = c.who === 'her' ? getAssAvatar(speaker) : null;
+    log.append(
+      el('div', {class:'msg' + (c.who==='me'?' me':'')},
+        av ? el('img', {src: av, alt: speaker.name||''}) : null,
+        el('div', {},
+          (c.who==='her' && (c.fromId || groupMode) ? el('div', {class:'who'}, speaker.name) : null),
+          el('div', {class:'bub'}, c.typing ? '…' : c.text),
+          ...(c.recs || []).map(recCard),
+          c.after ? el('div', {class:'bub', style:'margin-top:10px'}, c.after) : null
+        )
       )
-    )
-  ));
+    );
+  });
   log.scrollTop = log.scrollHeight;
 }
 
@@ -1092,14 +1264,18 @@ function assistantPage(){
     renderChat();
     setTimeout(() => {
       chat.pop();
-      chat.push({who:'her', ...asReply(txt)});
+      const rep = asReply(txt);
+      const extra = rep.extra || [];
+      delete rep.extra;
+      chat.push({who:'her', ...rep});
+      extra.forEach(x => chat.push(x));
       renderChat();
       updateSatBar();
     }, 400 + Math.random()*350);
   };
 
-  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Talk dirty','Be even needier','How are you feeling?','Who are you?'];
-  if(typeof GS !== 'undefined' && GS.length) GS.slice(0,3).forEach(n => chips.push('From ' + (F(n.id).name || n.name)));
+  const chips = ['Surprise me','Videos / photos','More','Watch with me','React to this','Pic of you','Talk dirty','@ others'];
+  if(typeof GS !== 'undefined' && GS.length) chips.push('From ' + (F(GS[0].id).name || GS[0].name));
 
   const theme = S.theme.asst || {};
   const borderCol = theme.border || currentAss.color;
@@ -1121,27 +1297,41 @@ function assistantPage(){
     el('img', {src: getAssAvatar(currentAss), alt: currentAss.name}),
     el('h3', {}, currentAss.name),
     el('p', {class:'path'}, currentAss.role),
-    el('p', {class:'path', style:'font-size:11px;max-height:3.2em;overflow:hidden'}, (currentAss.personality||'').slice(0,140)),
     el('div', {class:'sat-wrap'},
       el('div', {id:'satLabel', class:'path'}, ''),
       el('div', {class:'sat-track'}, el('div', {id:'satBar', class:'sat-fill'}))
     ),
-    el('div', {class:'row', style:'margin-top:10px; gap:6px; flex-wrap:wrap'},
+    el('div', {class:'row', style:'margin-top:8px; gap:4px; flex-wrap:wrap'},
       el('button', {class:'pri', onclick: doCongrats}, 'Praise'),
       el('button', {onclick: restAssistant}, 'Rest'),
-      el('button', {onclick: () => openAvatarPicker(currentAss)}, 'Set avatar'),
-      el('button', {onclick: () => openSelfImageManager(currentAss)}, 'Her photos'),
-      el('button', {onclick: () => openPersonalityEditor(currentAss)}, 'Personality'),
       el('button', {onclick: () => {
-        openPanel('Page look', () => {
+        openPanel(currentAss.name + ' settings', () => {
           const t = S.theme.asst = S.theme.asst || {};
           return [
+            el('p', {class:'h'}, 'Avatar & photos'),
+            el('div', {class:'row', style:'gap:6px;flex-wrap:wrap'},
+              el('button', {onclick: () => { closePanel(); openAvatarPicker(currentAss); }}, 'Set avatar'),
+              el('button', {onclick: () => { closePanel(); openSelfImageManager(currentAss); }}, 'Her photos')
+            ),
+            el('p', {class:'h'}, 'Personality'),
+            el('button', {onclick: () => { closePanel(); openPersonalityEditor(currentAss); }}, 'Edit personality…'),
+            el('p', {class:'h'}, 'Page look'),
             ...fColor('Border color', t.border || currentAss.color, v => { t.border = v; save(); assistantPage(); }),
-            ...fColor('Background tint', t.bg || '#1a1a22', v => { t.bg = v; save(); assistantPage(); })
+            ...fColor('Background tint', t.bg || '#1a1a22', v => { t.bg = v; save(); assistantPage(); }),
+            el('p', {class:'h'}, 'Danger'),
+            el('button', {onclick: () => { closePanel(); deleteCurrentAssistant(); }}, 'Delete assistant')
           ];
         });
-      }}, 'Look'),
-      el('button', {onclick: deleteCurrentAssistant}, 'Delete')
+      }}, 'Settings'),
+      el('button', {id:'grpBtn', onclick: () => {
+        groupMode = !groupMode;
+        const b = $('#grpBtn');
+        if(b) b.textContent = groupMode ? 'Group: on' : 'Group: off';
+        chat.push({who:'her', text: flavor(groupMode
+          ? (`Group on — ${otherNames().join(', ')||'others'} can chime in.`)
+          : 'Solo mode — just us.')});
+        renderChat();
+      }}, groupMode ? 'Group: on' : 'Group: off')
     )
   );
 
