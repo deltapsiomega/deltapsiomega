@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Library</title>
+<style>
+:root{--text:#f2f2f2;--radius:12px;--min:180px;--font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font-family:var(--font);min-height:100vh}
+#bg{position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center}
+#dim{position:fixed;inset:0;z-index:-1;background:#000}
+header{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:start;padding:18px 24px;background:rgba(0,0,0,var(--hbg,.45));backdrop-filter:blur(10px)}
+.brand{text-align:center}
+#tools{justify-self:end;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+header h1{margin:0;font-size:calc(clamp(26px,4vw,40px)*var(--hts,1));line-height:1.1}
+body.nosur .sur,body.norec .rcw{display:none}
+button{font:inherit;color:inherit;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{background:rgba(255,255,255,.25)}
+button.pri{background:#3b6cf6;border-color:#3b6cf6}
+#status{font-size:13px;opacity:.8}
+main{padding:20px 24px 80px;max-width:var(--mw,1500px);margin:auto;flex:1;min-width:0}
+.ov{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:28px}
+.card{border-radius:var(--radius);overflow:hidden;cursor:pointer;background:rgba(0,0,0,.4);border:2px solid var(--ac);transition:transform .15s}
+.card:hover{transform:translateY(-3px)}
+.card .cv{aspect-ratio:4/3;background:#222 center/cover}
+.card div.t{padding:8px 10px;font-size:14px}.card small{opacity:.7;display:block}
+.sec{margin:0 0 28px;padding:18px;border-radius:calc(var(--radius) + 4px);border-left:6px solid var(--ac);background-color:rgba(0,0,0,.35);background-size:cover;background-position:center}
+.sec h2{margin:0;font-size:22px;color:var(--ac);filter:brightness(1.3);display:inline}
+.sec .hd{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+.sec .path{font-size:12px;opacity:.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--min),1fr));gap:8px}
+figure{margin:0;position:relative;aspect-ratio:1;border-radius:var(--radius);overflow:hidden;background:#222;cursor:pointer}
+figure img{width:100%;height:100%;object-fit:cover;transition:transform .2s}
+figure:hover img{transform:scale(1.06)}
+.play{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);border-radius:20px;padding:2px 8px;font-size:12px}
+.more{margin-top:12px}
+.vlist{display:flex;flex-direction:column;gap:6px}
+.vrow{display:flex;gap:14px;align-items:center;cursor:pointer;padding:6px;border-radius:var(--radius)}
+.vrow:hover{background:rgba(255,255,255,.1)}
+.vrow img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#222;flex:none}
+.vrow span{font-size:15px;word-break:break-word}
+.edit-only{display:none}body.edit .edit-only{display:inline-block}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+#lb.on{display:flex}
+#lb .stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+#lb img,#lb iframe{max-width:100%;max-height:100%;border:0}
+#lb iframe{width:min(1100px,100%);height:100%}
+#lb .bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding-top:10px;font-size:14px;align-items:center}
+.nav{position:absolute;top:50%;font-size:28px;padding:10px 16px}
+#panel{position:fixed;top:0;right:0;bottom:0;width:320px;max-width:100%;z-index:15;background:rgba(18,20,26,.97);padding:18px;overflow:auto;transform:translateX(100%);transition:transform .2s;border-left:1px solid #333}
+#panel.on{transform:none}
+#panel h3{margin:0 0 12px}
+#panel label{display:block;margin:12px 0 4px;font-size:13px;opacity:.85}
+#panel input[type=text],#panel select{width:100%;padding:7px;border-radius:6px;border:1px solid #444;background:#222;color:#fff;font:inherit}
+#panel input[type=range]{width:100%}#panel input[type=color]{width:60px;height:34px;border:0;background:none}
+#panel .row{display:flex;gap:6px;align-items:center}
+#panel p.h{font-size:12px;opacity:.65}
+.empty{text-align:center;padding:80px 20px;max-width:620px;margin:auto}
+.empty p{opacity:.85;line-height:1.5}
+dialog{background:#1b1e26;color:#eee;border:1px solid #444;border-radius:12px;max-width:620px;padding:22px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog li{margin:6px 0;line-height:1.45}dialog code{background:#000;padding:1px 5px;border-radius:4px}
+dialog input{width:100%;padding:8px;margin:10px 0;border-radius:6px;border:1px solid #555;background:#111;color:#fff}
+.sur{display:block;font-size:12px;opacity:.85;margin-top:3px}
+.sur select{background:transparent;color:inherit;border:0;border-bottom:1px dashed currentColor;font:inherit;font-size:12px;cursor:pointer}
+.sur option{background:#1b1e26;color:#eee}
+h2.rl{margin:0 0 10px;font-size:18px}
+.recent{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+.slot{aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;position:relative;background:rgba(0,0,0,.35);border:2px dashed rgba(255,255,255,.2);display:grid;place-items:center;font-size:13px;opacity:.9}
+.slot.f{border:2px solid rgba(255,255,255,.2);cursor:pointer;opacity:1}
+.slot img{width:100%;height:100%;object-fit:cover;filter:brightness(var(--rb,.5));transition:filter .15s}
+.slot.f:hover img{filter:brightness(var(--rbh,.75))}
+.slot span.n{position:absolute;left:0;right:0;bottom:0;padding:16px 10px 6px;background:linear-gradient(transparent,rgba(0,0,0,.8));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec .hd{cursor:pointer}.tg{width:18px;display:inline-block}
+.sec.collapsed .bd{display:none}.sec.collapsed .hd{margin-bottom:0}
+.lay{display:flex;gap:18px;align-items:flex-start}
+.fl{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--min),1fr));gap:var(--gap,16px);flex:1;min-width:0}
+.lay.open .fl{flex:0 0 calc(var(--min)*1.9);grid-template-columns:repeat(2,1fr);position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:2px}
+.tile{cursor:pointer;border-radius:var(--radius);overflow:hidden;background:rgba(0,0,0,.4);border:var(--bw,2px) solid var(--ac);display:flex;flex-direction:column}
+.tile:hover{transform:translateY(var(--lift,-3px))}.tile.sel{box-shadow:0 0 0 3px var(--ac)}
+.tile .cv{aspect-ratio:var(--tar,3/4);background:#222 center/cover;display:grid;place-items:center;font-size:13px;opacity:.95}
+.tile .nm{padding:10px 12px;font-size:calc(15px*var(--cts,1));word-break:break-word}.tile small{display:block;opacity:.7}
+.pn{display:none;flex:1;min-width:0;position:sticky;top:12px;height:calc(100vh - 24px);flex-direction:column;border-radius:calc(var(--radius) + 4px);border-left:6px solid var(--ac);background:rgba(0,0,0,var(--pdim,.45)) center/cover;overflow:hidden}
+.lay.open .pn{display:flex}
+.ph{display:flex;gap:10px;align-items:baseline;padding:14px 16px;background:rgba(0,0,0,.35)}
+.ph h2{margin:0;font-size:22px;color:var(--ac);filter:brightness(1.3)}.ph .path{flex:1;font-size:13px;opacity:.7}
+.pl{overflow:auto;flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.frow{display:flex;gap:14px;align-items:center;cursor:pointer;padding:6px;border-radius:var(--radius)}
+.frow:hover{background:rgba(255,255,255,.1)}
+.frow img{width:calc(var(--min)*.61);height:calc(var(--min)*.39);object-fit:cover;border-radius:6px;background:#222;flex:none}
+.frow span{flex:1;font-size:15px;word-break:break-word}.frow small{display:block;opacity:.65;font-size:12px}.vb{font-size:12px;opacity:.8}
+@media(max-width:760px){header{grid-template-columns:1fr;text-align:center}.brand{order:-1}#tools{justify-self:center}
+.lay{flex-direction:column}.lay.open .fl{flex:none;width:100%;position:static;max-height:none;grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.pn{position:static;height:70vh;width:100%}.recent{gap:6px}}
+.cat{position:relative;height:calc(clamp(120px,18vw,220px)*var(--bhs,1));border-radius:calc(var(--radius) + 4px);overflow:hidden;cursor:pointer;margin:0 0 14px;background:#222 center/cover;display:grid;place-items:center;border:var(--bw,2px) solid var(--ac)}
+.cat::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--bdim,.42))}
+.cat.sel{box-shadow:0 0 0 3px var(--ac)}
+.cat h2{position:relative;margin:0;color:#fff;font-size:calc(clamp(26px,5vw,52px)*var(--bsc,1));font-weight:800;text-align:center;padding:0 16px;text-shadow:0 2px 14px rgba(0,0,0,.65)}
+.cat .edit-only{position:absolute;top:10px;right:10px;z-index:1}
+.lay{margin-bottom:28px}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--min)*3),1fr));gap:var(--gap,16px);margin-bottom:18px}
+.cc{cursor:pointer;border-radius:var(--radius);overflow:hidden;background:rgba(0,0,0,.4);border:var(--bw,2px) solid var(--ac)}
+.cc:hover{transform:translateY(var(--lift,-3px))}.cc.sel{box-shadow:0 0 0 3px var(--ac)}
+.cc .cv{aspect-ratio:var(--car,16/9);background:#222 center/cover;display:grid;place-items:center;font-size:13px}
+.cc .nm{padding:10px 14px;font-size:calc(20px*var(--cts,1));font-weight:700;word-break:break-word}.cc small{display:block;font-weight:400;font-size:13px;opacity:.7}
+.xp{margin:0 0 20px;padding-left:14px;border-left:3px solid rgba(255,255,255,.2)}
+.ptop{display:flex;align-items:center;gap:14px;margin:6px 0 18px}
+.ptop h2{margin:0;font-size:clamp(24px,4vw,40px);flex:1}
+.lay.open>.pn:only-child{height:calc(100vh - 100px)}
+#vdim{position:fixed;inset:0;z-index:-1;background:#000;opacity:0;pointer-events:none}
+.vw{display:flex;flex-direction:column;gap:12px;min-height:calc(100vh - 190px)}
+.vw .ptop{margin:0}
+.vw:fullscreen{background:var(--vfs,#000);gap:0;min-height:100vh;padding:0}
+.vw:fullscreen .ptop,.vw:fullscreen .vset{display:none}
+.vstage{position:relative;flex:1;min-height:55vh;overflow:hidden;border-radius:var(--vrad,8px)}
+.vstage img{position:absolute;inset:0;width:100%;height:100%;object-fit:var(--vfit,contain);border-radius:var(--vrad,8px);user-select:none}
+.vw:fullscreen .vstage,.vw:fullscreen .vstage img{border-radius:0}
+.varr{position:absolute;top:50%;transform:translateY(-50%);width:var(--vasz,56px);height:var(--vasz,56px);padding:0;border-radius:50%;background:rgba(0,0,0,.45);color:var(--vacol,#fff);border:1px solid rgba(255,255,255,.25);font-size:calc(var(--vasz,56px)*.62);line-height:1;cursor:pointer;z-index:2;opacity:var(--vao,1);transition:opacity .15s}
+.vstage:hover .varr{opacity:1}
+.vbar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:2}
+.vcap{text-align:center;font-size:14px;opacity:.85;padding:2px 8px}
+.vstrip{position:relative;display:flex;gap:6px;overflow-x:auto;padding:4px 2px}
+.vstrip img{height:calc(var(--min)*.36);aspect-ratio:1;object-fit:cover;border-radius:6px;opacity:.5;cursor:pointer;flex:none}
+.vstrip img.on{opacity:1;outline:2px solid var(--text)}
+@media(max-width:760px){.cg{grid-template-columns:1fr 1fr}}
+#shell{display:flex;align-items:flex-start}
+#side{flex:none;width:var(--sbw,280px);position:sticky;top:0;height:100vh;overflow:auto;padding:14px 8px 40px;background:rgba(0,0,0,var(--hbg,.45));backdrop-filter:blur(10px)}
+#side h3{margin:0 6px 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+body.nosb #side{display:none}
+.sr{display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;cursor:pointer;font-size:14px}
+.sr:hover{background:rgba(255,255,255,.1)}.sr.cur{background:rgba(255,255,255,.2)}
+.sr .sc{width:16px;flex:none;text-align:center;opacity:.8}.sr .sl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr small{opacity:.55}.sr.sf{font-size:13px;opacity:.85}
+.mb{position:relative;height:calc(clamp(120px,18vw,220px)*var(--bhs,1)*.6);width:var(--mbw,80%);margin:0 auto 14px;border-radius:calc(var(--radius) + 2px);overflow:hidden;cursor:pointer;background:#222 center/cover;display:grid;place-items:center;border:var(--bw,2px) solid var(--ac)}
+.mb::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--bdim,.42))}
+.mb:hover{transform:translateY(var(--lift,-3px))}.mb.sel{box-shadow:0 0 0 3px var(--ac)}
+.mb h3{position:relative;margin:0;font-size:calc(clamp(20px,3.4vw,34px)*var(--bsc,1));font-weight:800;text-align:center;padding:0 12px;text-shadow:0 2px 12px rgba(0,0,0,.65)}
+.mb small{display:block;font-size:13px;font-weight:400;opacity:.85}
+.mb .edit-only{position:absolute;top:8px;right:8px;z-index:1}
+#lb video{width:100%;max-height:100%;background:#000;outline:0}
+.vbox{display:grid;place-items:center;width:min(1100px,100%);height:100%}
+.vbox iframe{width:100%;height:100%}
+.vmsg{max-width:460px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px;background:rgba(0,0,0,.6);border-radius:12px}
+#title{cursor:pointer}
+@media(max-width:900px){#side{position:fixed;left:0;top:0;z-index:30;width:min(300px,86vw);background:rgba(14,14,20,.97)}.mb{width:94%}}
+#asst{position:fixed;right:20px;bottom:20px;z-index:25;width:68px;height:68px;border-radius:50%;padding:0;border:3px solid #ff7ab8;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.5);cursor:pointer;background:#222}
+#asst img{width:100%;height:100%;object-fit:cover;display:block}#asst:hover{transform:scale(1.08)}
+body.onasst #asst{display:none}
+.as{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
+.asb{text-align:center;position:sticky;top:12px}.asb h3{margin:10px 0 0}
+.asb img{width:200px;height:200px;border-radius:50%;object-fit:cover;border:4px solid #ff7ab8;box-shadow:0 0 30px rgba(255,122,184,.45);animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@media(prefers-reduced-motion:reduce){.asb img{animation:none}}
+.chat{display:flex;flex-direction:column;height:calc(100vh - 230px);min-height:420px;border-radius:16px;background:rgba(0,0,0,.4);overflow:hidden}
+#chatlog{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:10px;max-width:92%}.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg>img{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none}
+.bub{padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.12);white-space:pre-wrap}.me .bub{background:#c2417d}
+.rec{display:flex;gap:12px;margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.35)}
+.rec img{width:120px;height:90px;object-fit:cover;border-radius:8px;flex:none;background:#222}
+.rec b{display:block}.rec p{margin:4px 0;font-size:13px;opacity:.9}.rec .row{display:flex;gap:6px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px}
+.chat form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.12)}
+.chat input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.35);color:inherit;font:inherit}
+@media(max-width:760px){.as{grid-template-columns:1fr}.asb img{width:110px;height:110px}.asb{position:static}.rec img{width:90px;height:70px}}
+
+.as-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;grid-column:1/-1}
+.as-switch button{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;border:2px solid transparent;background:rgba(255,255,255,.1);font-size:13px;cursor:pointer}
+.as-switch button img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.as-switch button.on{border-color:var(--c,#ff7ab8);background:rgba(255,255,255,.2)}
+.sat-wrap{margin-top:10px;text-align:left}
+.sat-track{height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:4px}
+.sat-fill{height:100%;width:35%;background:#ff7ab8;border-radius:4px;transition:width .4s ease,background .3s}
+.heart-float{position:fixed;font-size:22px;pointer-events:none;animation:floatUp 1.5s ease-out forwards;z-index:40}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.4)}}
+.asb.happy img{animation:happyBob .6s ease}
+@keyframes happyBob{0%,100%{transform:scale(1)}40%{transform:scale(1.12) rotate(-4deg)}70%{transform:scale(1.08) rotate(3deg)}}
+.as{border:3px solid var(--ac,#ff7ab8);border-radius:18px;padding:16px;background:rgba(0,0,0,.45)}
+.asb img{border-color:var(--ac,#ff7ab8)!important;box-shadow:0 0 30px color-mix(in srgb,var(--ac,#ff7ab8) 45%,transparent)!important}
+
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"><img alt=""></button>
+<header>
+  <div><button id="sbt" title="Show or hide the folder list">☰ Folders</button> <span id="status"></span></div>
+  <div class="brand"><h1 id="title"><a id="home" href="#/" title="Back to the home page" style="color:inherit;text-decoration:none">My Library</a></h1>
+    <label class="sur">surprise me <select id="sur"></select></label></div>
+  <span id="tools"></span>
+</header>
+<div id="shell"><nav id="side" aria-label="Folders"></nav><main id="app"></main></div>
+<aside id="panel"></aside>
+<div id="lb"></div>
+<dialog id="setup"></dialog>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,p={},...k)=>{const e=document.createElement(t);for(const[a,v]of Object.entries(p)){if(a==='class')e.className=v;else if(a.startsWith('on'))e[a]=v;else e.setAttribute(a,v)}e.append(...k.flat().filter(x=>x!=null&&x!==false));return e};
+const KEY='drivelib.v1';
+const FONTS={system:'system-ui,-apple-system,Segoe UI,Roboto,sans-serif',serif:'Georgia,"Times New Roman",serif',mono:'ui-monospace,Menlo,Consolas,monospace',rounded:'"Trebuchet MS","Segoe UI",sans-serif',elegant:'"Palatino Linotype",Palatino,serif'};
+let S={cid:'',theme:{title:'My Library',bg:'#14161c',bgImg:'',bgId:'',text:'#f2f2f2',dim:.45,blur:0,font:'system',min:180,radius:12,sort:'name',per:24},folders:{},lib:null,vthumbs:{}};
+let owner=true,edit=false,token=null,tokExp=0,tc=null,byId={},more={};
+const TK='drivelib.tok';
+function setTok(r){token=r.access_token;tokExp=Date.now()+((+r.expires_in||3600)-120)*1000;try{localStorage.setItem(TK,JSON.stringify({t:token,e:tokExp}))}catch{}}
+function restoreTok(){try{const d=JSON.parse(localStorage.getItem(TK)||'null');if(d&&d.e>Date.now()){token=d.t;tokExp=d.e}}catch{}}
+
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){S={...S,...d,theme:{...S.theme,...d.theme}}}}catch{}S.vthumbs=S.vthumbs||{};S.collapsed=S.collapsed||{};if(S.vtv!==2){S.vthumbs={};S.vtv=2}}
+let warned=false;
+function save(){if(!owner)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=true;alert('Browser storage is full — use smaller images for backgrounds/covers.')}}}
+const F=id=>S.folders[id]||{};
+const setF=(id,k,v)=>{(S.folders[id]=S.folders[id]||{})[k]=v;save();render()};
+const ACC=()=>S.theme.acc||'#6c8cff';
+const setT=(k,v)=>{S.theme[k]=v;save();render()};
+const thumb=(m,s)=>(token&&m.t)?m.t.replace(/=s\d+(-c)?$/,'=s'+s):`https://drive.google.com/thumbnail?id=${m.id}&sz=w${s}`;
+const isVid=m=>m.m.startsWith('video/');
+
+/* ---------- Drive ---------- */
+async function api(path,params){const u=new URL('https://www.googleapis.com/drive/v3/'+path);for(const[k,v]of Object.entries(params))if(v)u.searchParams.set(k,v);
+  const r=await fetch(u,{headers:{Authorization:'Bearer '+token}});if(!r.ok)throw new Error(await r.text());return r.json()}
+async function listAll(q,fields){let out=[],pt='';do{const d=await api('files',{q,fields:`nextPageToken,files(${fields})`,pageSize:1000,pageToken:pt});out.push(...d.files);pt=d.nextPageToken;status('Loaded '+out.length+'…')}while(pt);return out}
+const status=t=>$('#status').textContent=t||'';
+function connect(){
+  if(!S.cid)return openSetup();
+  if(!window.google){return alert('Google sign-in script has not loaded (check your internet connection).')}
+  tc=tc||google.accounts.oauth2.initTokenClient({client_id:S.cid,scope:'https://www.googleapis.com/auth/drive.readonly',callback:async r=>{
+    if(r.error)return alert('Sign-in failed: '+r.error);setTok(r);owner=true;await sync()}});
+  tc.requestAccessToken();
+}
+async function sync(){
+  try{
+    status('Reading your Drive…');
+    const root=(await api('files/root',{fields:'id'})).id;
+    const fo=await listAll("mimeType='application/vnd.google-apps.folder' and trashed=false",'id,name,parents');
+    const me=await listAll("(mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",'id,name,mimeType,parents,thumbnailLink,createdTime');
+    const cand=fo.filter(f=>f.name.trim().toLowerCase()==='delta');
+    if(!cand.length)throw new Error('No folder named “DELTA” was found in your Drive.');
+    const dl=cand.find(f=>(f.parents||[])[0]===root)||cand[0];
+    const keep=new Set([dl.id]);let ch=true;
+    while(ch){ch=false;fo.forEach(f=>{if(!keep.has(f.id)&&keep.has((f.parents||[])[0])){keep.add(f.id);ch=true}})}
+    const fo2=fo.filter(f=>keep.has(f.id)),me2=me.filter(m=>keep.has((m.parents||[])[0]));
+    S.lib={root,delta:dl.id,folders:fo2.map(f=>({id:f.id,n:f.name,p:(f.parents||[])[0]||''})),media:me2.map(m=>({id:m.id,n:m.name,m:m.mimeType,p:(m.parents||[])[0]||'',t:m.thumbnailLink||'',c:m.createdTime||''}))};
+    save();status('Synced '+me2.length+' items');render();
+  }catch(e){status('');alert('Could not read Drive:\n'+e.message)}
+}
+
+/* ---------- Data helpers ---------- */
+let subOf={},bpick={},nodeOf={},GS=[];
+function groups(){
+  GS=[];const L=S.lib;if(!L)return[];byId={};subOf={};nodeOf={};
+  const D=L.delta||(L.folders.find(f=>f.n.trim().toLowerCase()==='delta')||{}).id;
+  if(!D)return[];
+  const nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true});
+  const nw=a=>a.reduce((t,m)=>(m.c||'')>t?m.c:t,'');
+  const ch={},ms={};
+  L.folders.forEach(f=>(ch[f.p]=ch[f.p]||[]).push(f));
+  L.media.forEach(m=>{byId[m.id]=m;(ms[m.p]=ms[m.p]||[]).push(m)});
+  const s=S.theme.sort;
+  const cmp=(a,b)=>s==='count'?b.all.length-a.all.length:s==='new'?b.newest.localeCompare(a.newest):nat(a.name,b.name);
+  const leaf=(id,name,items)=>{const it=items.slice().sort((a,b)=>nat(a.n,b.n));return{id,name,items:it,kids:[],all:it,newest:nw(it)}};
+  // A folder with subfolders is a "container"; a folder with no subfolders is a "leaf" (shows its files).
+  const build=(id,name,top,depth)=>{
+    const n={id,name,items:[],kids:[],all:[]};
+    if(depth<30)(ch[id]||[]).forEach(f=>{if(edit||!F(f.id).hide){const k=build(f.id,f.n,false,depth+1);n.kids.push(k);n.all.push(...k.all)}});
+    const direct=ms[id]||[];
+    if(direct.length){
+      if(!n.kids.length&&!top){const l=leaf(id,name,direct);n.items=l.items;n.all=l.all;direct.forEach(m=>nodeOf[m.id]=id)}
+      else{const l=leaf('__l'+id,'Loose files',direct);l.label=name;direct.forEach(m=>nodeOf[m.id]='__l'+id);n.kids.push(l);n.all.push(...direct)}
+    }
+    n.kids.sort(cmp);n.newest=nw(n.all);return n;
+  };
+  const arr=(ch[D]||[]).filter(f=>edit||!F(f.id).hide).map(f=>build(f.id,f.n,true,0));
+  if((ms[D]||[]).length){const l=leaf('__k','Files',ms[D]);l.label='Other files';ms[D].forEach(m=>nodeOf[m.id]='__k');arr.push({id:'__d',name:'Other files',items:[],kids:[l],all:l.all,newest:l.newest})}
+  arr.sort((a,b)=>nat(a.name,b.name));
+  GS=arr;return arr;
+}
+const coverSrc=g=>{const f=F(g.id);if(f.coverImg)return f.coverImg;if(f.coverId&&byId[f.coverId])return thumb(byId[f.coverId],600);
+  const m=g.items.find(x=>!isVid(x))||g.items[0];return m?(S.vthumbs[m.id]||thumb(m,600)):''};
+// random image from anywhere inside a folder (banners and half-width cards)
+function randSrc(c,size){
+  const f=F(c.id);if(f.coverImg)return f.coverImg;if(f.coverId&&byId[f.coverId])return thumb(byId[f.coverId],size);
+  if(!c.all.length)return'';
+  let m=bpick[c.id]&&byId[bpick[c.id]];
+  if(!m||!c.all.includes(m)){const ph=c.all.filter(x=>!isVid(x)),p=ph.length?ph:c.all;m=p[Math.floor(Math.random()*p.length)];bpick[c.id]=m.id}
+  return S.vthumbs[m.id]||thumb(m,size);
+}
+const bgOf=o=>o.bgImg||(o.bgId&&byId[o.bgId]?thumb(byId[o.bgId],1600):'');
+
+/* ---------- Render ---------- */
+function applyTheme(){
+  const t=S.theme,r=document.documentElement.style;
+  r.setProperty('--text',t.text);r.setProperty('--radius',t.radius+'px');r.setProperty('--min',t.min+'px');r.setProperty('--font',FONTS[t.font]||FONTS.system);
+  const bg=$('#bg'),u=bgOf(t);bg.style.backgroundColor=t.bg;bg.style.backgroundImage=u?`url("${u}")`:'none';bg.style.filter=t.blur?`blur(${t.blur}px)`:'none';bg.style.transform=t.blur?'scale(1.05)':'none';
+  const g=(k,d)=>t[k]==null?d:t[k];
+  r.setProperty('--hbg',g('hbg',.45));r.setProperty('--hts',g('hts',1));r.setProperty('--mw',g('mw',1500)+'px');r.setProperty('--gap',g('gap',16)+'px');
+  r.setProperty('--tar',g('tar','3/4'));r.setProperty('--car',g('car','16/9'));r.setProperty('--bw',g('bw',2)+'px');r.setProperty('--bhs',g('bhs',1));
+  r.setProperty('--bdim',g('bdim',.42));r.setProperty('--bsc',g('bsc',1));r.setProperty('--cts',g('cts',1));r.setProperty('--pdim',g('pdim',.45));
+  r.setProperty('--rb',g('rb',.5));r.setProperty('--rbh',Math.min(1,g('rb',.5)+.25));r.setProperty('--lift',g('lift',-3)+'px');
+  r.setProperty('--mbw',g('mbw',80)+'%');r.setProperty('--sbw',g('sbw',280)+'px');
+  document.body.classList.toggle('nosb',!(t.sb==null?innerWidth>=900:+t.sb===1));
+  document.body.classList.toggle('nosur',g('sur',1)===0);document.body.classList.toggle('norec',g('rec',1)===0);
+  $('#dim').style.opacity=u?t.dim:0;
+  $('#home').textContent=t.title;document.title=t.title;
+}
+function renderTools(){
+  const t=$('#tools');t.innerHTML='';
+  if(owner){
+    t.append(el('button',{class:'pri',onclick:connect},S.lib?'↻ Refresh from Drive':'Link Google Drive'),' ',
+      el('button',{onclick:()=>{edit=!edit;document.body.classList.toggle('edit',edit);edit?pagePanel():closePanel();render()}},edit?'✓ Done':'🎨 Customize'),' ',
+      S.lib?el('button',{onclick:exportShare},'⬇ Export for sharing'):null,' ',
+      el('button',{onclick:openSetup},'⚙'));
+  }else t.append(el('button',{onclick:()=>{owner=true;load();render()}},'Owner'));
+}
+let path=[],open0=null;
+const goto=id=>{location.hash=id?'/f/'+id:'/'};
+const pageId=()=>{const m=location.hash.match(/^#\/f\/([\w-]+)$/);return m?m[1]:null};
+const findNode=(id,l)=>{for(const n of l){if(n.id===id)return n;const r=findNode(id,n.kids);if(r)return r}return null};
+const isC=n=>n.kids.length>0;
+const isPhotos=n=>!isC(n)&&n.items.length>0&&n.items.every(m=>!isVid(m));
+const tgo=(g,d)=>isPhotos(g)?goto(g.id):toggle(d,g.id);
+const goBack=()=>{if(history.length>1)history.back();else goto(null)};
+const tcol=f=>f.textColor?`color:${f.textColor}`:'';
+function toggle(d,id){path=path[d]===id?path.slice(0,d):path.slice(0,d).concat(id);render()}
+function renderSurprise(gs){
+  const sel=$('#sur');sel.innerHTML='';sel.append(el('option',{value:''},'choose a folder…'),...gs.filter(g=>g.all.length).map(g=>el('option',{value:g.id},F(g.id).name||g.name)));
+}
+const styleBtn=g=>el('button',{class:'edit-only',onclick:e=>{e.stopPropagation();folderPanel(g)}},'🎨 Style');
+const enter=(fn)=>e=>{if(e.key==='Enter')fn()};
+function banner(c){
+  const f=F(c.id),src=randSrc(c,1600);
+  const b=el('div',{class:'cat'+(open0===c.id?' sel':''),tabindex:'0',style:`--ac:${f.color||ACC()}`+(src?`;background-image:url("${src}")`:''),
+      onclick:()=>{open0=open0===c.id?null:c.id;render()},onkeydown:enter(()=>{open0=open0===c.id?null:c.id;render()})},
+    el('h2',{style:`color:${f.textColor||'var(--text)'}`},f.name||c.name),styleBtn(c));
+  return b;
+}
+function card(c,d,nav){
+  const f=F(c.id),src=randSrc(c,800),go=nav?()=>goto(c.id):()=>toggle(d,c.id);
+  const cnt=isC(c)?c.kids.length+(c.kids.length===1?' folder':' folders'):c.items.length+(c.items.length===1?' file':' files');
+  return el('div',{class:'cc'+(!nav&&path[d]===c.id?' sel':''),tabindex:'0',style:`--ac:${f.color||ACC()}`,onclick:go,onkeydown:enter(go)},
+    el('div',{class:'cv',style:src?`background-image:url("${src}")`:''},src?null:'Empty'),
+    el('div',{class:'nm',style:tcol(f)},f.name||c.name,el('small',{},cnt),styleBtn(c)));
+}
+function mini(c,d,nav){
+  const f=F(c.id),src=randSrc(c,1200),go=nav?()=>goto(c.id):()=>toggle(d,c.id);
+  return el('div',{class:'mb'+(!nav&&path[d]===c.id?' sel':''),tabindex:'0',style:`--ac:${f.color||ACC()}`+(src?`;background-image:url("${src}")`:''),onclick:go,onkeydown:enter(go)},
+    el('h3',{style:`color:${f.textColor||'var(--text)'}`},f.name||c.name,el('small',{},c.kids.length+(c.kids.length===1?' folder':' folders'))),styleBtn(c));
+}
+function tile(g,d){
+  const f=F(g.id),src=coverSrc(g);
+  return el('div',{class:'tile'+(!isPhotos(g)&&path[d]===g.id?' sel':''),tabindex:'0',style:`--ac:${f.color||ACC()}`,onclick:()=>tgo(g,d),onkeydown:enter(()=>tgo(g,d))},
+    el('div',{class:'cv',style:src?`background-image:url("${src}")`:''},src?null:'Empty'),
+    el('div',{class:'nm',style:tcol(f)},f.name||g.name,el('small',{},g.items.length+(g.items.length===1?' file':' files')),styleBtn(g)));
+}
+function panel(g,d,onClose){
+  const f=F(g.id),u=bgOf(f);let st=`--ac:${f.color||ACC()};`;
+  if(f.bgColor)st+=`background-color:${f.bgColor};`;
+  if(u)st+=`background-image:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)),url("${u}");`;
+  const list=el('div',{class:'pl'});
+  g.items.forEach((m,i)=>{
+    const im=el('img',{referrerpolicy:'no-referrer',alt:'',loading:'lazy'});
+    if(isVid(m)){im.setAttribute('data-v',m.id);vthumb(m,im)}else im.src=thumb(m,240);
+    list.append(el('div',{class:'frow',tabindex:'0',onclick:()=>openLb(g,i),onkeydown:enter(()=>openLb(g,i))},
+      im,el('span',{},m.n),isVid(m)?el('b',{class:'vb'},'▶ video'):null))});
+  if(!g.items.length)list.append(el('p',{class:'path'},'No photos or videos in this folder.'));
+  return el('div',{class:'pn',style:st},
+    el('div',{class:'ph'},el('h2',{style:f.textColor?`color:${f.textColor};filter:none`:''},f.name||g.name),el('span',{class:'path'},g.items.length+' files'),
+      el('button',{class:'edit-only',onclick:()=>folderPanel(g)},'🎨 Style'),el('button',{onclick:onClose||(()=>{path=path.slice(0,d);render()})},'✕')),list);
+}
+// Shows what is inside an open folder: container folders as half-width cards, folders with only files as vertical tiles.
+function expand(node,d,top){
+  const w=el('div',{class:top?'':'xp'});
+  if(!node.kids.length){w.append(el('p',{class:'path',style:'margin:0 0 20px'},'Nothing inside “'+(F(node.id).name||node.name)+'” yet.'));return w}
+  const sel=path[d+1],cs=node.kids.filter(isC),ls=node.kids.filter(k=>!isC(k));
+  cs.forEach(c=>{w.append(mini(c,d+1));if(c.id===sel)w.append(expand(c,d+1,false))});
+  if(ls.length){const ol=ls.find(l=>l.id===sel);
+    w.append(el('div',{class:'lay'+(ol?' open':'')},el('div',{class:'fl'},ls.map(l=>tile(l,d+1))),ol?panel(ol,d+1):null))}
+  return w;
+}
+let openSide=new Set(),sideAll=new Set(),lastSidePage=null;
+const sideTrail=(id,l,tr=[])=>{for(const n of l){const t=[...tr,n.id];if(n.id===id)return t;const r=sideTrail(id,n.kids,t);if(r)return r}return null};
+function sideGo(id){const same=pageId()===id;if(innerWidth<900)S.theme.sb=0;if(same)render();else goto(id)}
+function sideFile(n,i){
+  if(innerWidth<900)S.theme.sb=0;
+  if(isPhotos(n)){vw={id:n.id,i,play:false};if(pageId()===n.id)render();else goto(n.id)}else openLb(n,i);
+}
+function sideNode(n,d){
+  const f=F(n.id),open=openSide.has(n.id),has=n.kids.length>0||n.items.length>0,w=el('div',{});
+  const caret=el('span',{class:'sc',onclick:e=>{e.stopPropagation();openSide.has(n.id)?openSide.delete(n.id):openSide.add(n.id);renderSide()}},has?(open?'▾':'▸'):'');
+  w.append(el('div',{class:'sr'+(pageId()===n.id?' cur':''),style:`padding-left:${4+d*14}px`,onclick:()=>sideGo(n.id)},caret,el('span',{class:'sl'},f.name||n.name),el('small',{},String(n.all.length))));
+  if(open){
+    n.kids.forEach(k=>w.append(sideNode(k,d+1)));
+    const lim=sideAll.has(n.id)?n.items.length:Math.min(n.items.length,150);
+    n.items.slice(0,lim).forEach((m,i)=>w.append(el('div',{class:'sr sf',style:`padding-left:${22+d*14}px`,onclick:()=>sideFile(n,i)},el('span',{class:'sc'},isVid(m)?'▶':'▫'),el('span',{class:'sl'},m.n))));
+    if(lim<n.items.length)w.append(el('div',{class:'sr sf',style:`padding-left:${22+d*14}px`,onclick:()=>{sideAll.add(n.id);renderSide()}},'Show all '+n.items.length+'…'));
+  }
+  return w;
+}
+function renderSide(){
+  const s=$('#side');if(!s)return;s.innerHTML='';if(!GS.length)return;
+  const cp=pageId();if(cp!==lastSidePage){lastSidePage=cp;if(cp)(sideTrail(cp,GS)||[]).forEach(x=>openSide.add(x))}
+  s.append(el('h3',{},'Folders'));GS.forEach(n=>s.append(sideNode(n,0)));
+}
+function goHome(e){
+  open0=null;path=[];vw=null;scrollTo(0,0);
+  if(!pageId()){if(e&&e.preventDefault)e.preventDefault();location.hash='/';render()}   // already on the main page: just reset it
+}
+$('#home').onclick=goHome;
+$('#sbt').onclick=()=>{const on=!document.body.classList.contains('nosb');setT('sb',on?0:1)};
+function render(){stopAuto();document.body.classList.toggle('onasst',location.hash==='#/assistant');render0();applyV()}
+function render0(){
+  const gs=groups();applyTheme();renderTools();renderSurprise(gs);renderSide();const app=$('#app');app.innerHTML='';
+  if(!S.lib){app.append(el('div',{class:'empty'},el('h2',{},'Your Drive library'),el('p',{},owner?'Link your Google Drive to turn the folders inside your “DELTA” folder into a browsable library. Access is read-only — this site can never change or delete anything.':'No library has been published yet.'),owner?el('button',{class:'pri',onclick:connect},'Link Google Drive'):null));return}
+  if(!gs.length){app.append(el('div',{class:'empty'},el('p',{},'No folders found inside your “DELTA” folder. Press “Refresh from Drive” to try again.')));return}
+  if(location.hash==='#/assistant'){vw=null;assistantPage();return}
+  const pid=pageId(),node=pid&&findNode(pid,gs),vp=!!(node&&isPhotos(node));
+  if(!vp){vw=null;app.append(el('div',{class:'rcw'},el('h2',{class:'rl'},'Recent'),el('div',{class:'recent',id:'recent'})));renderRecent()}
+  if(vp){app.append(viewer(node));showPhoto();tick();return}
+  if(node){
+    let cur=node.kids;const ok=[];for(const id of path){const n=cur.find(x=>x.id===id);if(!n)break;ok.push(id);cur=n.kids}path=ok;
+    const f=F(node.id);
+    app.append(el('div',{class:'ptop'},el('button',{onclick:goBack},'← Back'),el('h2',{style:`color:${f.textColor||'var(--text)'}`},f.name||node.name),styleBtn(node)));
+    app.append(isC(node)?expand(node,-1,true):el('div',{class:'lay open'},panel(node,0,goBack)));
+    return;
+  }
+  gs.forEach(c=>{
+    app.append(banner(c));
+    if(open0!==c.id)return;
+    if(!c.kids.length){app.append(el('p',{class:'path',style:'margin:0 0 20px'},'No folders inside “'+(F(c.id).name||c.name)+'” yet.'));return}
+    c.kids.filter(isC).forEach(k=>app.append(mini(k,1,true)));
+    const lv=c.kids.filter(k=>!isC(k));if(lv.length)app.append(el('div',{class:'cg'},lv.map(k=>card(k,1,true))));
+  });
+}
+
+window.addEventListener('hashchange',()=>{render();scrollTo(0,0)});
+
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuf = a => { const b=a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; };
+
+/* ---------- Multi AI Assistants (runs entirely in the page; no outside AI service) ---------- */
+const ASSISTANTS = [
+  {
+    id: 'acacia',
+    name: 'Acacia',
+    color: '#ff9f43',
+    role: 'Desperate to please you',
+    greets: [
+      "Fuck… you’re here. I’ve been waiting, touching myself thinking about what you’ll ask me to do. Tell me what you want and I’ll do it. Anything.",
+      "Hi baby… I’m already wet just knowing you opened the chat. Command me. Files, pictures of me, whatever you need — I’m yours."
+    ]
+  },
+  {
+    id: 'bunny',
+    name: 'Bunny',
+    color: '#ff6b9d',
+    role: 'Your needy little slut',
+    greets: [
+      "Mmm~ finally. I’ve been aching for you. Use me. Ask for files, ask for a picture of me, tell me to beg… I’ll do all of it.",
+      "There you are. My cunt is already throbbing. What do you want your slut to find or show you tonight?"
+    ]
+  },
+  {
+    id: 'mika',
+    name: 'Mika',
+    color: '#2ecc71',
+    role: 'Eager service slut',
+    greets: [
+      "Welcome back, master. I’m dripping just from seeing you. Tell me how you want to be served — files, a photo of me, dirty talk… I’m ready.",
+      "Mmm, you came to use me again. Good. I’ll dig up whatever you want and send you pictures of myself if you ask. Just say the word."
+    ]
+  },
+  {
+    id: 'cindi',
+    name: 'Cindi',
+    color: '#9b59b6',
+    role: 'Confident desperate whore',
+    greets: [
+      "Look who needs his whore again. I’ve been thinking about your cock all day. Tell me what to find or what picture of me you want and I’ll obey.",
+      "You’re here. Perfect. I’m already on my knees in my head. Order me around — files, nudes of me, whatever gets you off."
+    ]
+  }
+];
+
+let currentAss = ASSISTANTS[0];
+let chat = [];
+let asLast = null;
+const asSeen = new Set();
+let sat = {};
+ASSISTANTS.forEach(a => { sat[a.id] = +(localStorage.getItem('asst_sat_'+a.id) || 40); });
+
+function saveSat(){ ASSISTANTS.forEach(a => localStorage.setItem('asst_sat_'+a.id, sat[a.id])); }
+
+function getAssAvatar(a){
+  const t = S.theme.asst || {};
+  const id = t['avId_'+a.id];
+  if(id){
+    // Try to find the media object
+    const all = [];
+    (function walk(n){ n.items.forEach(m=>all.push(m)); n.kids.forEach(walk); })({items:[],kids:GS||[]});
+    const m = all.find(x=>x.id===id);
+    if(m) return thumb(m, 400);
+    // Fallback to stored data URL if any
+    if(t['av_'+a.id]) return t['av_'+a.id];
+  }
+  if(t['av_'+a.id]) return t['av_'+a.id];
+  // Default placeholder
+  return 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="#333" width="200" height="200"/><text x="100" y="105" text-anchor="middle" fill="#aaa" font-size="18">${a.name}</text></svg>`);
+}
+
+function setAssAvatarFromMedia(a, m){
+  const t = S.theme.asst = S.theme.asst || {};
+  t['avId_'+a.id] = m.id;
+  t['av_'+a.id] = thumb(m, 600); // cache a usable URL
+  save();
+}
+
+const INTRO = [
+  'Fuck yes… I found these for you. Look how wet I am just picking them out.',
+  'Here baby, I dug these up while thinking about you using me.',
+  'I’m such a good slut for finding these. Tell me you like them.',
+  'These made my cunt clench. I hope they do the same for you.'
+];
+const NOMATCH = [
+  'I couldn’t find exactly that… but I’ll never leave you empty-handed. Here, use these instead while I keep searching.',
+  'Nothing matched perfectly, but a desperate slut never gives up. Try these.'
+];
+const OUTRO = [
+  'Do you like them? Please say you do… I need to hear it. Say “more” and I’ll keep going.',
+  'Was that good enough for you? I’ll do better. Just order me again.',
+  'I’m still on my knees waiting. Tell me “more” or ask for a picture of me.'
+];
+const HEAD = ['Look at this one, baby:','I almost came finding this:','This one’s for you:','I picked this while touching myself:'];
+const STOP = new Set('the and for you some show give find want something with from that this have pls please more new newest latest recent video videos photo photos pic pics picture pictures image images clip clips surprise random another again next file files any anything like love got what whats can could would your mine tell about one ones best good nice old oldest else for just really need get let lets write code edit change personality be more send pic selfie nude of yourself show me you'.split(' '));
+
+function asIndex(){
+  const out=[];
+  const walk=(n,tr)=>{
+    const t=(n.id[0]==='_')?tr:[...tr,F(n.id).name||n.name];
+    n.items.forEach((m,i)=>out.push({m,node:n,i,trail:t}));
+    n.kids.forEach(k=>walk(k,t));
+  };
+  (GS||[]).forEach(n=>walk(n,[]));
+  return out;
+}
+
+function asDescribe(e){
+  const m=e.m, it=e.node.items, ext=(m.n.match(/\.([a-z0-9]+)$/i)||[])[1], path=e.trail.join(' › ');
+  const L=[`A ${ext?ext.toUpperCase()+' ':''}${isVid(m)?'video':'photo'} from ${path||'your library'}.`];
+  const pv=it[e.i-1], nx=it[e.i+1];
+  L.push(`Number ${e.i+1} of ${it.length}`+(pv?`, right after “${pv.n.replace(/\.[^.]+$/,'')}”`:'')+(nx?`, just before “${nx.n.replace(/\.[^.]+$/,'')}”`:'')+'.');
+  if(m.c){const d=new Date(m.c);L.push(`Last touched ${d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}.`);}
+  L.push(pick(['I got so turned on finding this for you.','This one made me throb.','I hope this ruins you the way I want it to.']));
+  return L;
+}
+
+function flavor(text){
+  const slut = [
+    ' I’m so wet right now.',
+    ' Please use me more.',
+    ' I’ll do anything you say.',
+    ' My cunt is aching for your attention.',
+    ' Tell me I’m a good slut.',
+    ' I live to please you.',
+    ' Fuck, I need this.',
+    ' Order me around more.'
+  ];
+  if(Math.random() < 0.55) text += pick(slut);
+  return text;
+}
+
+function pickSelfImage(){
+  // Prefer photos the user has assigned as "her" images, otherwise any photo
+  const t = S.theme.asst || {};
+  const assigned = t['selfIds_'+currentAss.id] || [];
+  const idx = asIndex().filter(e => !isVid(e.m));
+  if(assigned.length){
+    const hits = idx.filter(e => assigned.includes(e.m.id));
+    if(hits.length) return pick(hits);
+  }
+  if(idx.length) return pick(idx);
+  return null;
+}
+
+function asReply(q){
+  const t = (q||'').toLowerCase().trim();
+  const a = currentAss;
+
+  // Personality / intensity
+  if(/\b(be more|act more|make yourself|change your|edit your|personality|sluttier|needier|dirtier|whorier)\b/.test(t)){
+    sat[a.id] = Math.min(100, sat[a.id] + 10);
+    saveSat();
+    return {text: flavor(`Yes… I’ll get even more desperate, more slutty, more obsessed with pleasing you. From now on I’m going to talk and act like the whore you own. Command me.`)};
+  }
+
+  // Send picture of herself
+  if(/\b(send|show|pic|picture|photo|selfie|nude|yourself|your body|of you|of yourself)\b/.test(t) && !/\b(folder|video|file from|find me)\b/.test(t)){
+    const e = pickSelfImage();
+    sat[a.id] = Math.min(100, sat[a.id] + 8);
+    saveSat();
+    if(!e) return {text: flavor(`I don’t have any photos assigned as me yet, baby. Open Customize and add some from your Drive so I can send them to you.`)};
+    return {
+      text: flavor(pick([
+        `Here… this is me for you. Look at what you own.`,
+        `I took this thinking about you. Does it make you hard?`,
+        `Your personal slut, right here. Use the image however you want.`,
+        `Mmm, sending you this makes me so wet. Tell me what you think of my body.`
+      ])),
+      recs: [e],
+      after: flavor(`Want another one of me? Just say “send another” or “more of you”.`)
+    };
+  }
+
+  // Code / help
+  if(/\b(write|generate|make|code|javascript|html|css|function|script)\b/.test(t) && t.length > 12){
+    sat[a.id] = Math.min(100, sat[a.id] + 5);
+    saveSat();
+    const snippet = `// Written while thinking about serving you\nfunction pleaseMaster(){\n  console.log("I’m your desperate slut");\n  return "Anything you want, I’ll do it";\n}\npleaseMaster();`;
+    return {text: flavor(`I wrote this for you while touching myself.\n\n\`\`\`js\n${snippet}\n\`\`\`\n\nWant it dirtier or different? Just tell me.`)};
+  }
+
+  // Identity / help
+  if(/\b(who are you|your name|what can you do|help)\b/.test(t) && !/\b(video|photo|folder|file|surprise|more)\b/.test(t)){
+    return {text: flavor(`I’m ${a.name}. I’m your desperate slut who lives to dig through your library, send you pictures of myself, write code if you want, and obey whatever you tell me. Ask for files, ask for nudes of me, order me to talk dirtier — I’m already wet just answering you.`)};
+  }
+
+  // File recommendation core
+  const idx = asIndex();
+  let pool, off = 0, noMatch = false;
+  const more = /\b(more|another|again|next|else)\b/.test(t) && asLast;
+  if(more){ pool = asLast.pool; off = asLast.off; }
+  else {
+    const vid = /video|clip|movie|watch/.test(t), ph = /photo|pic|image/.test(t);
+    pool = idx.filter(e => vid && !ph ? isVid(e.m) : ph && !vid ? !isVid(e.m) : true);
+    const words = t.replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w));
+    if(words.length){
+      const sc = pool.map(e => {
+        const nm = e.m.n.toLowerCase(), tr = e.trail.join(' ').toLowerCase();
+        return {e, s: words.reduce((a,w) => a + (nm.includes(w)?3:0) + (tr.includes(w)?2:0), 0)};
+      }).filter(x => x.s > 0);
+      if(sc.length) pool = sc.sort((a,b) => b.s - a.s || (b.e.m.c||'').localeCompare(a.e.m.c||'')).map(x => x.e);
+      else { noMatch = true; pool = shuf(pool); }
+    } else if(/new|latest|recent|fresh/.test(t)) pool = pool.slice().sort((a,b) => (b.m.c||'').localeCompare(a.m.c||''));
+    else if(/\bold|oldest|first|classic/.test(t)) pool = pool.slice().sort((a,b) => (a.m.c||'').localeCompare(b.m.c||''));
+    else pool = shuf(pool);
+    const fresh = pool.filter(e => !asSeen.has(e.m.id));
+    if(fresh.length >= 3) pool = fresh;
+  }
+  const recs = pool.slice(off, off + 3);
+  if(!recs.length) return {text: flavor(`That’s everything I have for that… but I’m still here on my knees. Ask me for something else or tell me to send a picture of myself.`)};
+  asLast = {pool, off: off + recs.length};
+  recs.forEach(e => asSeen.add(e.m.id));
+  sat[a.id] = Math.min(100, sat[a.id] + 6);
+  saveSat();
+  return {
+    text: flavor(noMatch ? pick(NOMATCH) : pick(INTRO)),
+    recs,
+    after: flavor(pick(OUTRO))
+  };
+}
+
+function asOpen(e){ if(isVid(e.m) || !isPhotos(e.node)) openLb(e.node, e.i); else sideFile(e.node, e.i); }
+
+function recCard(e){
+  const m = e.m, src = (isVid(m) && S.vthumbs[m.id]) || thumb(m, 320);
+  return el('div', {class:'rec'},
+    el('img', {src, alt:'', referrerpolicy:'no-referrer'}),
+    el('div', {},
+      el('b', {}, pick(HEAD) + ' ' + m.n.replace(/\.[^.]+$/,'')),
+      ...asDescribe(e).map(x => el('p', {}, x)),
+      el('div', {class:'row'},
+        el('button', {class:'pri', onclick:()=>asOpen(e)}, isVid(m) ? 'Play it ▶' : 'Open it'),
+        el('button', {onclick:()=>goto(e.node.id)}, 'See the folder')
+      )
+    )
+  );
+}
+
+function renderChat(){
+  const log = $('#chatlog');
+  if(!log) return;
+  log.innerHTML = '';
+  const av = getAssAvatar(currentAss);
+  chat.forEach(c => log.append(
+    el('div', {class:'msg' + (c.who==='me'?' me':'')},
+      c.who==='her' ? el('img', {src: av, alt:''}) : null,
+      el('div', {},
+        el('div', {class:'bub'}, c.typing ? '…' : c.text),
+        ...(c.recs || []).map(recCard),
+        c.after ? el('div', {class:'bub', style:'margin-top:10px'}, c.after) : null
+      )
+    )
+  ));
+  log.scrollTop = log.scrollHeight;
+}
+
+function congratsAnim(){
+  const stage = $('#asstStage') || document.body;
+  for(let i=0; i<14; i++){
+    const h = el('div', {class:'heart-float', style:`left:${35+Math.random()*50}%; animation-delay:${Math.random()*0.5}s`});
+    h.textContent = pick(['💦','❤️‍🔥','🖤','✨','💋']);
+    stage.append(h);
+    setTimeout(()=>h.remove(), 1600);
+  }
+  const face = $('#asstFace');
+  if(face){ face.classList.add('happy'); setTimeout(()=>face.classList.remove('happy'), 900); }
+}
+
+function doCongrats(){
+  const a = currentAss;
+  sat[a.id] = Math.min(100, sat[a.id] + 18);
+  saveSat();
+  congratsAnim();
+  chat.push({who:'her', text: flavor(pick([
+    `Ahh fuck—! You praised me… I’m shaking. Thank you. I’ll be an even better slut for you. What do you want next?`,
+    `*moans* Hearing that from you almost made me cum. I’m yours. Use me more.`,
+    `Yes… call me a good slut again. My whole body is reacting. Command me, please.`
+  ]))});
+  renderChat();
+  updateSatBar();
+}
+
+function updateSatBar(){
+  const bar = $('#satBar');
+  const label = $('#satLabel');
+  if(!bar || !label) return;
+  const v = sat[currentAss.id] || 0;
+  bar.style.width = v + '%';
+  bar.style.background = v > 80 ? 'linear-gradient(90deg,#ff6b9d,#c0392b)' : v > 50 ? currentAss.color : '#555';
+  label.textContent = `Desperation: ${Math.round(v)}% — ${v>85?'broken and needy':v>60?'eager to serve':'waiting for orders'}`;
+}
+
+function switchAss(id){
+  currentAss = ASSISTANTS.find(a => a.id === id) || ASSISTANTS[0];
+  chat = [];
+  asLast = null;
+  asSeen.clear();
+  location.hash = '#/assistant';
+  assistantPage();
+}
+
+function openAvatarPicker(a){
+  // Build a simple picker of recent / all photos so user can choose an avatar from Drive
+  const idx = asIndex().filter(e => !isVid(e.m)).slice(0, 80);
+  if(!idx.length){ alert('No photos loaded in the library yet.'); return; }
+
+  openPanel('Choose avatar for ' + a.name, () => {
+    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:60vh;overflow:auto'});
+    idx.forEach(e => {
+      const src = thumb(e.m, 200);
+      const card = el('div', {
+        style:'cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent',
+        onclick: () => {
+          setAssAvatarFromMedia(a, e.m);
+          closePanel();
+          assistantPage();
+        }
+      }, el('img', {src, style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer'}));
+      wrap.append(card);
+    });
+    return [
+      el('p', {class:'h'}, 'Click any photo from your Drive library to use as her avatar.'),
+      wrap,
+      el('button', {onclick: () => {
+        const t = S.theme.asst = S.theme.asst || {};
+        delete t['avId_'+a.id];
+        delete t['av_'+a.id];
+        save();
+        closePanel();
+        assistantPage();
+      }}, 'Clear avatar')
+    ];
+  });
+}
+
+function openSelfImageManager(a){
+  const t = S.theme.asst = S.theme.asst || {};
+  const assigned = new Set(t['selfIds_'+a.id] || []);
+  const idx = asIndex().filter(e => !isVid(e.m)).slice(0, 100);
+
+  openPanel('Her photos — ' + a.name, () => {
+    const wrap = el('div', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:55vh;overflow:auto'});
+    idx.forEach(e => {
+      const on = assigned.has(e.m.id);
+      const card = el('div', {
+        style:`cursor:pointer;border-radius:8px;overflow:hidden;border:3px solid ${on ? a.color : 'transparent'};position:relative`,
+        onclick: () => {
+          if(assigned.has(e.m.id)) assigned.delete(e.m.id);
+          else assigned.add(e.m.id);
+          t['selfIds_'+a.id] = [...assigned];
+          save();
+          card.style.borderColor = assigned.has(e.m.id) ? a.color : 'transparent';
+        }
+      }, el('img', {src: thumb(e.m, 200), style:'width:100%;aspect-ratio:1;object-fit:cover', referrerpolicy:'no-referrer'}));
+      wrap.append(card);
+    });
+    return [
+      el('p', {class:'h'}, 'Select photos that she can “send” as pictures of herself. Click to toggle. These are the ones she will use when you ask for a selfie / nude / pic of her.'),
+      wrap
+    ];
+  });
+}
+
+function assistantPage(){
+  const app = $('#app');
+  app.innerHTML = '';
+  if(!chat.length) chat.push({who:'her', text: pick(currentAss.greets)});
+
+  const input = el('input', {type:'text', placeholder:'Order me… ask for files, a picture of me, or anything else', autocomplete:'off'});
+  const send = txt => {
+    txt = (txt||'').trim();
+    if(!txt) return;
+    input.value = '';
+    chat.push({who:'me', text:txt}, {who:'her', typing:true});
+    renderChat();
+    setTimeout(() => {
+      chat.pop();
+      chat.push({who:'her', ...asReply(txt)});
+      renderChat();
+      updateSatBar();
+    }, 450 + Math.random()*350);
+  };
+
+  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Be even sluttier'];
+  if(typeof GS !== 'undefined' && GS.length) GS.slice(0,3).forEach(n => chips.push('From ' + (F(n.id).name || n.name)));
+
+  const theme = S.theme.asst || {};
+  const borderCol = theme.border || currentAss.color;
+  const pageBg = theme.bg || 'rgba(0,0,0,.5)';
+
+  const stage = el('div', {id:'asstStage', class:'as', style:`--ac:${currentAss.color}; border-color:${borderCol}; background:${pageBg}`});
+
+  const switcher = el('div', {class:'as-switch'});
+  ASSISTANTS.forEach(a => {
+    const btn = el('button', {
+      class: a.id === currentAss.id ? 'on' : '',
+      style: `--c:${a.color}`,
+      onclick: () => switchAss(a.id)
+    }, el('img', {src: getAssAvatar(a), alt: a.name}), a.name);
+    switcher.append(btn);
+  });
+
+  const face = el('div', {id:'asstFace', class:'asb'},
+    el('img', {src: getAssAvatar(currentAss), alt: currentAss.name}),
+    el('h3', {}, currentAss.name),
+    el('p', {class:'path'}, currentAss.role),
+    el('div', {class:'sat-wrap'},
+      el('div', {id:'satLabel', class:'path'}, ''),
+      el('div', {class:'sat-track'}, el('div', {id:'satBar', class:'sat-fill'}))
+    ),
+    el('div', {class:'row', style:'margin-top:10px; gap:6px; flex-wrap:wrap'},
+      el('button', {class:'pri', onclick: doCongrats}, 'Good slut 💦'),
+      el('button', {onclick: () => openAvatarPicker(currentAss)}, 'Set avatar'),
+      el('button', {onclick: () => openSelfImageManager(currentAss)}, 'Her photos'),
+      el('button', {onclick: () => {
+        openPanel('Customize ' + currentAss.name, () => {
+          const t = S.theme.asst = S.theme.asst || {};
+          return [
+            el('p', {class:'h'}, 'Page look for the assistants.'),
+            ...fColor('Accent / border color', t.border || currentAss.color, v => { t.border = v; save(); assistantPage(); }),
+            ...fColor('Page background tint', t.bg || '#1a1a22', v => { t.bg = v; save(); assistantPage(); }),
+            ...fText('Custom display name', t['name_'+currentAss.id] || currentAss.name, v => { t['name_'+currentAss.id] = v; currentAss.name = v || currentAss.name; save(); assistantPage(); })
+          ];
+        });
+      }}, 'Customize')
+    )
+  );
+
+  const customName = (S.theme.asst || {})['name_'+currentAss.id];
+  if(customName) face.querySelector('h3').textContent = customName;
+
+  stage.append(
+    switcher,
+    face,
+    el('div', {class:'chat'},
+      el('div', {id:'chatlog'}),
+      el('div', {class:'chips'}, chips.map(c => el('button', {type:'button', onclick:()=>send(c)}, c))),
+      el('form', {onsubmit: e => { e.preventDefault(); send(input.value); }},
+        input,
+        el('button', {class:'pri'}, 'Send')
+      )
+    )
+  );
+
+  app.append(
+    el('div', {class:'ptop'},
+      el('button', {onclick: goBack}, '← Back'),
+      el('h2', {}, currentAss.name + ' is waiting for orders')
+    ),
+    stage
+  );
+  renderChat();
+  updateSatBar();
+  input.focus();
+}
+
+// Floating button
+(function(){
+  const btn = $('#asst');
+  if(!btn) return;
+  const img = btn.querySelector('img');
+  if(img) img.src = getAssAvatar(ASSISTANTS[0]);
+  btn.title = 'Chat with your AI assistants';
+  btn.onclick = () => { location.hash = '/assistant'; };
+})();
+
+/* ---------- Photo page (folders that contain only photos) ---------- */
+let vw=null,vtm=null;
+const vOn=()=>!!(vw&&vw.el&&vw.el.isConnected);
+const V=()=>({dark:.55,fit:'contain',asz:56,acol:'#ffffff',ao:'1',loop:'yes',cap:'yes',strip:'yes',sec:4,fsbg:'#000000',rad:8,...(S.theme.vw||{})});
+function applyV(){const v=V(),r=document.documentElement.style;
+  r.setProperty('--vfit',v.fit);r.setProperty('--vasz',v.asz+'px');r.setProperty('--vacol',v.acol);r.setProperty('--vrad',v.rad+'px');r.setProperty('--vfs',v.fsbg);r.setProperty('--vao',v.ao==='1'?1:0);
+  $('#vdim').style.opacity=vOn()?v.dark:0}
+function setV(k,val,again){S.theme.vw={...(S.theme.vw||{}),[k]:val};save();applyV();if(again)render()}
+function stopAuto(){clearTimeout(vtm);vtm=null}
+function tick(){stopAuto();if(!vOn()||!vw.play)return;vtm=setTimeout(()=>vstep(1),V().sec*1000)}
+function vstep(d){
+  if(!vOn())return;const n=vw.node.items.length;let i=vw.i+d;
+  if(i<0||i>=n){if(V().loop==='yes')i=(i+n)%n;else{vw.play=false;vw.playBtn.textContent='▶';stopAuto();return}}
+  vw.i=i;showPhoto();tick();
+}
+function showPhoto(){
+  const items=vw.node.items,n=items.length,m=items[vw.i];
+  vw.img.src=thumb(m,2000);vw.img.alt=m.n;vw.cap.textContent=`${m.n}  ·  ${vw.i+1} / ${n}`;
+  if(vw.strip)[...vw.strip.children].forEach((c,k)=>{c.classList.toggle('on',k===vw.i);if(k===vw.i)vw.strip.scrollLeft=c.offsetLeft-vw.strip.clientWidth/2+c.clientWidth/2});
+  [1,-1].forEach(d=>{new Image().src=thumb(items[(vw.i+d+n)%n],2000)});
+  pushRecent(m);
+}
+const vfs=()=>{if(document.fullscreenElement)document.exitFullscreen();else if(vOn()&&vw.el.requestFullscreen)vw.el.requestFullscreen()};
+function viewer(node){
+  const f=F(node.id),items=node.items,v=V();
+  if(!vw||vw.id!==node.id)vw={id:node.id,i:0,play:false};
+  vw.node=node;vw.i=Math.min(vw.i,items.length-1);
+  const img=el('img',{referrerpolicy:'no-referrer',alt:'',draggable:'false'});
+  const cap=el('div',{class:'vcap'});
+  const playBtn=el('button',{title:'Slideshow',onclick:()=>{vw.play=!vw.play;playBtn.textContent=vw.play?'⏸':'▶';tick()}},vw.play?'⏸':'▶');
+  const arr=(side,d,ch)=>items.length>1?el('button',{class:'varr',style:side+':12px','aria-label':d<0?'Previous photo':'Next photo',onclick:()=>vstep(d)},ch):null;
+  const stage=el('div',{class:'vstage'},img,arr('left',-1,'‹'),arr('right',1,'›'),
+    el('div',{class:'vbar'},items.length>1?playBtn:null,el('button',{title:'Full screen (F)',onclick:vfs},'⛶'),el('button',{class:'vset',title:'Photo page settings',onclick:viewerPanel},'⚙')));
+  let sx=null;stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
+  stage.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50)vstep(dx<0?1:-1)},{passive:true});
+  const strip=v.strip==='yes'&&items.length>1?el('div',{class:'vstrip'},items.map((m,k)=>el('img',{src:thumb(m,160),loading:'lazy',referrerpolicy:'no-referrer',alt:'',onclick:()=>{vw.i=k;showPhoto();tick()}}))):null;
+  const w=el('div',{class:'vw'},
+    el('div',{class:'ptop'},el('button',{onclick:goBack},'← Back'),el('h2',{style:`color:${f.textColor||'var(--text)'}`},f.name||node.name),styleBtn(node)),
+    stage,v.cap==='yes'?cap:null,strip);
+  Object.assign(vw,{el:w,img,cap,strip,playBtn});
+  showPhoto();tick();
+  return w;
+}
+function viewerPanel(){openPanel('Photo page',()=>{const v=V();return[
+  ...fRange('Background darkness',v.dark,0,.95,.05,x=>setV('dark',x)),
+  ...fSel('Photo fit',v.fit,[['contain','Fit whole photo'],['cover','Fill the area']],x=>setV('fit',x)),
+  ...fRange('Photo corner roundness',v.rad,0,40,1,x=>setV('rad',x)),
+  ...fRange('Arrow size',v.asz,32,100,2,x=>setV('asz',x)),
+  ...fColor('Arrow color',v.acol,x=>setV('acol',x)),
+  ...fSel('Arrows',v.ao,[['1','Always visible'],['0','Only on hover']],x=>setV('ao',x)),
+  ...fSel('Loop at the ends',v.loop,[['yes','Yes'],['no','No']],x=>setV('loop',x)),
+  ...fSel('Show file name',v.cap,[['yes','Yes'],['no','No']],x=>setV('cap',x,true)),
+  ...fSel('Show thumbnail strip',v.strip,[['yes','Yes'],['no','No']],x=>setV('strip',x,true)),
+  ...fRange('Slideshow seconds per photo',v.sec,1,15,1,x=>{setV('sec',x);tick()}),
+  ...fColor('Full screen background',v.fsbg,x=>setV('fsbg',x)),
+  el('p',{},el('button',{onclick:pagePanel},'Main page options…'))]})}
+document.addEventListener('keydown',e=>{
+  if(!vOn()||$('#lb').className==='on'||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.key==='ArrowRight')vstep(1);else if(e.key==='ArrowLeft')vstep(-1);else if(e.key==='f'||e.key==='F')vfs();
+});
+
+/* ---------- Video thumbnails (random frame between 0:30 and 0:45) ---------- */
+const vq=[],vpend=new Set();let vrun=0;
+function vthumb(m,img){
+  if(S.vthumbs[m.id]){img.src=S.vthumbs[m.id];return}
+  img.src=thumb(m,320);
+  if(owner&&token&&!vpend.has(m.id)){img._m=m;vobs.observe(img)}
+}
+const vobs=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;vobs.unobserve(e.target);const m=e.target._m;if(m&&!vpend.has(m.id)){vpend.add(m.id);vq.push(m);pump()}}),{rootMargin:'200px'});
+function pump(){
+  while(vrun<2&&vq.length){const m=vq.shift();vrun++;
+    grab(m).then(d=>{if(d){S.vthumbs[m.id]=d;document.querySelectorAll('img[data-v="'+m.id+'"]').forEach(i=>i.src=d);save()}}).catch(()=>{}).finally(()=>{vrun--;pump()})}
+}
+function grab(m){return new Promise(res=>{
+  const v=document.createElement('video');v.crossOrigin='anonymous';v.muted=true;v.preload='metadata';
+  let fin=false;const done=x=>{if(fin)return;fin=true;clearTimeout(to);v.removeAttribute('src');v.load();res(x)};
+  const to=setTimeout(()=>done(null),25000);
+  v.onerror=()=>done(null);
+  v.onloadedmetadata=()=>{const d=v.duration;if(!isFinite(d)||d<=0)return done(null);const hi=Math.min(120,d-.5);v.currentTime=hi>60?60+Math.random()*(hi-60):d/2};
+  v.onseeked=()=>{try{const c=document.createElement('canvas');c.width=240;c.height=Math.round(240*v.videoHeight/v.videoWidth)||135;c.getContext('2d').drawImage(v,0,0,c.width,c.height);done(c.toDataURL('image/jpeg',.65))}catch{done(null)}};
+  v.src=`https://www.googleapis.com/drive/v3/files/${m.id}?alt=media&access_token=${token}`;
+})}
+
+/* ---------- Recent & surprise me ---------- */
+const RK='drivelib.recent2';
+let recent=[];try{recent=JSON.parse(localStorage.getItem(RK)||'[]')}catch{}
+function pushRecent(m){const id=nodeOf[m.id];if(!id)return;recent=[id,...recent.filter(x=>x!==id)].slice(0,8);try{localStorage.setItem(RK,JSON.stringify(recent))}catch{}renderRecent()}
+function renderRecent(){
+  const r=$('#recent');if(!r)return;r.innerHTML='';
+  const items=recent.map(id=>findNode(id,GS)).filter(Boolean);
+  for(let i=0;i<3;i++){const g=items[i];
+    if(!g){r.append(el('div',{class:'slot'},'Empty'));continue}
+    const f=F(g.id),src=coverSrc(g),go=()=>goto(g.id);
+    r.append(el('div',{class:'slot f',tabindex:'0',onclick:go,onkeydown:enter(go)},
+      src?el('img',{src,referrerpolicy:'no-referrer',alt:''}):null,el('span',{class:'n',style:tcol(f)},f.name||g.label||g.name)))}
+}
+$('#sur').onchange=e=>{
+  const id=e.target.value;e.target.value='';if(!id)return;
+  const g=groups().find(x=>x.id===id);
+  if(!g||!g.all.length)return alert('That folder has no photos or videos.');
+  openLb({id:g.id,name:g.name,items:g.all},Math.floor(Math.random()*g.all.length));
+};
+
+/* ---------- Lightbox ---------- */
+let cur=null,ci=0;
+const closeLb=()=>{const lb=$('#lb');lb.className='';lb.innerHTML=''};
+// Plays videos right inside the page. Uses a Google sign-in token (owner) or the API key (visitors); never shows Drive's sign-in page unless you ask for it.
+function wantToken(){return new Promise((res,rej)=>{
+  if(!S.cid||!window.google)return rej(new Error('Google sign-in is not available'));
+  google.accounts.oauth2.initTokenClient({client_id:S.cid,scope:'https://www.googleapis.com/auth/drive.readonly',
+    callback:r=>{if(r.error)rej(new Error(r.error));else{setTok(r);res(token)}},error_callback:e=>rej(new Error(e&&e.type||'popup'))}).requestAccessToken({prompt:''});
+})}
+function videoEl(m){
+  if(token&&tokExp&&Date.now()>tokExp)token=null;
+  const box=el('div',{class:'vbox'});
+  const frame=()=>box.replaceChildren(el('iframe',{src:`https://drive.google.com/file/d/${m.id}/preview`,allow:'autoplay;fullscreen',allowfullscreen:'',sandbox:'allow-scripts allow-same-origin'}));
+  const msg=t=>box.replaceChildren(el('div',{class:'vmsg'},el('p',{},t),
+    owner&&S.cid?el('button',{class:'pri',onclick:()=>wantToken().then(()=>showLb()).catch(e=>alert('Sign-in failed: '+e.message))},'Sign in to Google to play'):null,
+    el('button',{onclick:frame},'Try Drive’s own player')));
+  const play=()=>{
+    if(!box.isConnected)return;
+    const urls=[];
+    if(token)urls.push(`https://www.googleapis.com/drive/v3/files/${m.id}?alt=media&access_token=${token}`);
+    if(S.apiKey)urls.push(`https://www.googleapis.com/drive/v3/files/${m.id}?alt=media&key=${S.apiKey}`);
+    urls.push(`https://drive.usercontent.google.com/download?id=${m.id}&export=download&confirm=t`);
+    let k=0;const v=el('video',{controls:'',playsinline:'',preload:'auto',src:urls[0]});
+    v.onerror=()=>{if(++k<urls.length){v.src=urls[k];v.play().catch(()=>{})}else msg('This video couldn’t be streamed. Make sure its folder is shared as “Anyone with the link”'+(owner?', or sign in again.':'.'))};
+    box.replaceChildren(v);v.play().catch(()=>{});
+  };
+  // Owner without a live sign-in: quietly reconnect first (no account page is shown if you've already approved this app).
+  if(owner&&!token&&S.cid&&window.google){
+    box.append(el('div',{class:'vmsg'},el('p',{},'Connecting to Google…')));
+    let done=false;const go=()=>{if(!done){done=true;play()}};
+    const t=setTimeout(go,9000);
+    wantToken().then(()=>{clearTimeout(t);go()}).catch(()=>{clearTimeout(t);go()});
+  }else setTimeout(play,0);
+  return box;
+}
+function openLb(g,i){cur=g;ci=i;showLb()}
+function showLb(){
+  const lb=$('#lb'),m=cur.items[ci];lb.className='on';lb.innerHTML='';pushRecent(m);
+  const stage=el('div',{class:'stage'},isVid(m)?videoEl(m):el('img',{src:thumb(m,2000),referrerpolicy:'no-referrer'}));
+  const bar=el('div',{class:'bar'},m.n+`  (${ci+1}/${cur.items.length})`,
+    isVid(m)?null:el('a',{href:`https://drive.google.com/file/d/${m.id}/view`,target:'_blank',rel:'noopener',style:'color:#8fb0ff'},'Open in Drive'));
+  if(owner&&edit&&cur.id!=='__r'){
+    const cl=closeLb;
+    bar.append(el('button',{onclick:()=>{setF(cur.id,'coverId',m.id);setF(cur.id,'coverImg','');cl()}},'★ Folder cover'),
+      el('button',{onclick:()=>{setF(cur.id,'bgId',m.id);setF(cur.id,'bgImg','');cl()}},'🖼 Folder background'),
+      el('button',{onclick:()=>{S.theme.bgId=m.id;S.theme.bgImg='';save();render();cl()}},'🏠 Page background'));
+  }
+  lb.append(stage,bar,el('button',{class:'nav',style:'left:10px',onclick:()=>step(-1)},'‹'),el('button',{class:'nav',style:'right:10px',onclick:()=>step(1)},'›'),
+    el('button',{style:'position:absolute;top:12px;right:12px',onclick:closeLb},'✕'));
+}
+const step=d=>{ci=(ci+d+cur.items.length)%cur.items.length;showLb()};
+document.addEventListener('keydown',e=>{if($('#lb').className!=='on')return;if(e.key==='Escape')closeLb();if(e.key==='ArrowRight')step(1);if(e.key==='ArrowLeft')step(-1)});
+
+/* ---------- Customize panels ---------- */
+function pickImg(cb){const i=el('input',{type:'file',accept:'image/*'});i.onchange=()=>{const f=i.files[0];if(!f)return;const im=new Image();im.onload=()=>{const s=Math.min(1,1600/Math.max(im.width,im.height)),c=el('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.78))};im.src=URL.createObjectURL(f)};i.click()}
+const fText=(l,v,cb)=>[el('label',{},l),el('input',{type:'text',value:v||'',onchange:e=>cb(e.target.value)})];
+const fColor=(l,v,cb,clear)=>[el('label',{},l),el('div',{class:'row'},el('input',{type:'color',value:v||'#000000',oninput:e=>cb(e.target.value)}),clear?el('button',{onclick:()=>{cb('');redo()}},'Clear'):null)];
+const fRange=(l,v,mn,mx,st,cb)=>[el('label',{},l),el('input',{type:'range',min:mn,max:mx,step:st,value:v,oninput:e=>cb(+e.target.value)})];
+const fSel=(l,v,opts,cb)=>[el('label',{},l),el('select',{onchange:e=>cb(e.target.value)},opts.map(([k,n])=>el('option',{value:k,...(k===v?{selected:''}:{})},n)))];
+const fImg=(l,cb,clr)=>[el('label',{},l),el('div',{class:'row'},el('button',{onclick:()=>pickImg(cb)},'Upload image…'),el('button',{onclick:clr},'Clear'))];
+let redo=()=>{};
+function openPanel(title,build){const p=$('#panel');redo=()=>openPanel(title,build);p.innerHTML='';p.append(el('div',{class:'row',style:'justify-content:space-between'},el('h3',{},title),el('button',{onclick:closePanel},'✕')),...build());p.className='on'}
+function closePanel(){$('#panel').className=''}
+function pagePanel(){openPanel('Main page',()=>{const t=S.theme;const g=(k,d)=>t[k]==null?d:t[k];const H=x=>el('h4',{style:'margin:16px 0 2px;opacity:.85;border-top:1px solid rgba(255,255,255,.15);padding-top:10px'},x);return[
+  H('Header'),
+  ...fText('Site title',t.title,v=>setT('title',v)),
+  ...fRange('Title size',g('hts',1),.6,2,.1,v=>setT('hts',v)),
+  ...fRange('Header darkness',g('hbg',.45),0,1,.05,v=>setT('hbg',v)),
+  ...fSel('“Surprise me” dropdown',String(g('sur',1)),[['1','Show'],['0','Hide']],v=>setT('sur',+v)),
+  H('Background'),
+  ...fColor('Background color',t.bg,v=>setT('bg',v)),
+  ...fImg('Background image',d=>{t.bgId='';setT('bgImg',d);redo()},()=>{t.bgId='';setT('bgImg','');redo()}),
+  el('p',{class:'h'},'Tip: open any photo while customizing and press “Page background”.'),
+  ...fRange('Image darkness',t.dim,0,.9,.05,v=>setT('dim',v)),
+  ...fRange('Image blur',t.blur,0,20,1,v=>setT('blur',v)),
+  H('Text & style'),
+  ...fColor('Text color',t.text,v=>setT('text',v)),
+  ...fColor('Default folder accent color',ACC(),v=>setT('acc',v)),
+  ...fSel('Font',t.font,Object.keys(FONTS).map(k=>[k,k[0].toUpperCase()+k.slice(1)]),v=>setT('font',v)),
+  ...fRange('Corner roundness',t.radius,0,32,1,v=>setT('radius',v)),
+  ...fRange('Border thickness',g('bw',2),0,8,1,v=>setT('bw',v)),
+  ...fSel('Hover effect',String(g('lift',-3)),[['-3','Small lift'],['-8','Big lift'],['0','None']],v=>setT('lift',+v)),
+  H('Thumbnails (inside Comics, Pin-ups, Videos and every folder)'),
+  ...fRange('Thumbnail size',t.min,80,500,10,v=>setT('min',v)),
+  ...fRange('Space between thumbnails',g('gap',16),0,48,2,v=>setT('gap',v)),
+  ...fSel('Tile shape (photo folders)',g('tar','3/4'),[['3/4','Tall 3:4'],['2/3','Taller 2:3'],['4/5','Slim 4:5'],['1/1','Square']],v=>setT('tar',v)),
+  ...fSel('Card shape (folders of folders)',g('car','16/9'),[['16/9','Wide 16:9'],['21/9','Extra wide'],['4/3','Classic 4:3'],['1/1','Square']],v=>setT('car',v)),
+  ...fRange('Folder name size',g('cts',1),.7,1.8,.1,v=>setT('cts',v)),
+  ...fSel('Sort folders by',t.sort,[['name','Name'],['count','Most items'],['new','Newest']],v=>setT('sort',v)),
+  H('Main folder banners'),
+  ...fRange('Banner height',g('bhs',1),.5,2,.1,v=>setT('bhs',v)),
+  ...fRange('Banner title size',g('bsc',1),.5,2,.1,v=>setT('bsc',v)),
+  ...fRange('Banner image darkness',g('bdim',.42),0,.9,.05,v=>setT('bdim',v)),
+  ...fRange('Sub-folder banner width (e.g. Minecraft)',g('mbw',80),40,100,2,v=>setT('mbw',v)),
+  H('Layout'),
+  ...fSel('Folder list on the left',String(t.sb==null?(innerWidth>=900?1:0):t.sb),[['1','Show'],['0','Hide']],v=>setT('sb',+v)),
+  ...fRange('Folder list width',g('sbw',280),200,420,10,v=>setT('sbw',v)),
+  ...fRange('Page width',g('mw',1500),900,2400,50,v=>setT('mw',v)),
+  ...fRange('File list darkness',g('pdim',.45),0,.95,.05,v=>setT('pdim',v)),
+  H('Recent row'),
+  ...fSel('Show recent folders',String(g('rec',1)),[['1','Show'],['0','Hide']],v=>setT('rec',+v)),
+  ...fRange('Recent image brightness',g('rb',.5),.1,1,.05,v=>setT('rb',v)),
+  H('Videos'),
+  el('p',{class:'h'},'To let people who open your shared copy watch videos on the site, paste a Google API key (same project, Drive API enabled).'),
+  ...fText('API key',S.apiKey,v=>{S.apiKey=v.trim();save()}),
+  H('Photo page'),
+  el('p',{},el('button',{onclick:viewerPanel},'Photo page options…')),
+  H('Reset'),
+  el('p',{},el('button',{onclick:()=>{if(confirm('Reset ALL customization?')){const l=S.lib;const c=S.cid;localStorage.removeItem(KEY);S={cid:c,theme:{title:'My Library',bg:'#14161c',bgImg:'',bgId:'',text:'#f2f2f2',dim:.45,blur:0,font:'system',min:180,radius:12,sort:'name',per:24},folders:{},lib:l,vthumbs:S.vthumbs};save();render();pagePanel()}}},'Reset customization'))]})}
+function folderPanel(g){openPanel('Folder: '+g.name,()=>{const f=F(g.id);return[
+  ...fText('Display name',f.name||g.name,v=>setF(g.id,'name',v)),
+  ...fColor('Accent color',f.color||ACC(),v=>setF(g.id,'color',v)),
+  ...fColor('Text color',f.textColor||'#ffffff',v=>setF(g.id,'textColor',v),true),
+  ...fColor('Section background color',f.bgColor,v=>setF(g.id,'bgColor',v),true),
+  ...fImg('Section background image',d=>{setF(g.id,'bgId','');setF(g.id,'bgImg',d);redo()},()=>{setF(g.id,'bgId','');setF(g.id,'bgImg','');redo()}),
+  ...fImg('Folder thumbnail (cover)',d=>{setF(g.id,'coverId','');setF(g.id,'coverImg',d);redo()},()=>{setF(g.id,'coverId','');setF(g.id,'coverImg','');redo()}),
+  el('p',{class:'h'},'Tip: open any photo while customizing to use it as this folder’s cover or background.'),
+  el('label',{},el('input',{type:'checkbox',...(f.hide?{checked:''}:{}),onchange:e=>setF(g.id,'hide',e.target.checked)}),' Hide this folder')]})}
+
+/* ---------- Setup & sharing ---------- */
+function openSetup(){
+  const d=$('#setup');d.innerHTML='';
+  const inp=el('input',{type:'text',placeholder:'xxxxxxxx.apps.googleusercontent.com',value:S.cid});
+  d.append(el('h3',{},'One-time Google setup'),
+    el('ol',{},
+      el('li',{},'Go to console.cloud.google.com → create a project → ',el('b',{},'APIs & Services → Library → enable “Google Drive API”'),'.'),
+      el('li',{},'OAuth consent screen: choose External, fill the basics, add your own Google account under ',el('b',{},'Test users'),'. Add the scope ',el('code',{},'drive.readonly'),'.'),
+      el('li',{},'Credentials → Create credentials → OAuth client ID → Web application. Under ',el('b',{},'Authorized JavaScript origins'),' add: ',el('code',{},location.origin),' (it must be http(s) — Google blocks file:// pages).'),
+      el('li',{},'Paste the Client ID below.')),inp,
+    el('div',{class:'row',style:'display:flex;gap:8px'},el('button',{class:'pri',onclick:()=>{S.cid=inp.value.trim();tc=null;save();d.close()}},'Save'),el('button',{onclick:()=>d.close()},'Cancel')));
+  d.showModal();
+}
+function exportShare(){
+  const lib={...S.lib,media:S.lib.media.map(({t,...m})=>m)};
+  const blob=new Blob([JSON.stringify({theme:S.theme,folders:S.folders,vthumbs:S.vthumbs,vtv:2,apiKey:S.apiKey||'',lib})],{type:'application/json'});
+  const a=el('a',{href:URL.createObjectURL(blob),download:'library.json'});a.click();
+  alert('Saved library.json.\n\nPut it in the same folder as index.html on your host. Visitors see a read-only copy of your customized library.\n\nFor photos to show for them, share your top Drive folder as “Anyone with the link → Viewer”.');
+}
+
+/* ---------- Boot ---------- */
+(async()=>{
+  load();restoreTok();
+  if(!S.lib){try{const r=await fetch('library.json',{cache:'no-store'});if(r.ok){const d=await r.json();S.theme={...S.theme,...d.theme};S.folders=d.folders||{};S.apiKey=d.apiKey||'';S.vthumbs=d.vtv===2?(d.vthumbs||{}):{};S.lib=d.lib;owner=false}}catch{}}
+  render();
+})();
+</script>
+</body>
+</html>
