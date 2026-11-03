@@ -988,12 +988,13 @@ function groupChime(topic){
 const AI_CFG_KEY = 'drivelib.ai.v1';
 const AI_PRESETS = {
   off: {label:'Built-in replies', base:'', model:''},
+  local: {label:'In-browser model (free, offline, no key)', base:'local', model:'Llama-3.2-1B-Instruct-q4f16_1-MLC'},
   groq: {label:'Groq (free tier)', base:'https://api.groq.com/openai/v1', model:'openai/gpt-oss-120b'},
   openrouter: {label:'OpenRouter', base:'https://openrouter.ai/api/v1', model:'openrouter/free'},
   gemini: {label:'Google Gemini', base:'https://generativelanguage.googleapis.com/v1beta/openai', model:'gemini-2.5-flash'},
   custom: {label:'Custom endpoint', base:'https://api.openai.com/v1', model:'gpt-4o-mini'}
 };
-function defaultAiCfg(){ return {preset:'off', base:'', model:'', key:''}; }
+function defaultAiCfg(){ return {preset:'local', base:'local', model:'Llama-3.2-1B-Instruct-q4f16_1-MLC', key:''}; }
 function loadAiCfg(){
   try{
     const d = JSON.parse(localStorage.getItem(AI_CFG_KEY) || 'null');
@@ -1004,6 +1005,7 @@ function loadAiCfg(){
 function saveAiCfg(c){ try{ localStorage.setItem(AI_CFG_KEY, JSON.stringify(c)); }catch{} }
 function aiConfigured(){
   const c = loadAiCfg();
+  if(c.preset === 'local') return !!(c.model && c.model.trim());
   return !!(c.key && c.key.trim() && c.base && c.base.trim() && c.model && c.model.trim() && c.preset !== 'off');
 }
 function aiCatalogLine(){
@@ -1016,9 +1018,55 @@ function aiHistory(){
     content: String(c.text).slice(0, 1500)
   }));
 }
+/* In-browser model via WebLLM (WebGPU). Downloads once, then cached; no server, no key. */
+const LOCAL_MODELS = [
+  'Llama-3.2-1B-Instruct-q4f16_1-MLC',
+  'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
+  'Llama-3.2-3B-Instruct-q4f16_1-MLC',
+  'Phi-3.5-mini-instruct-q4f16_1-MLC'
+];
+let LOCAL_AI = {engine:null, id:'', pending:null};
+function localToast(msg){
+  let t = document.getElementById('localAiToast');
+  if(!msg){ if(t) t.remove(); return; }
+  if(!t){
+    t = document.createElement('div'); t.id = 'localAiToast';
+    t.style.cssText = 'position:fixed;right:20px;bottom:96px;z-index:45;max-width:280px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.85);color:#fff;font-size:12px;border:1px solid #ff6b9d';
+    document.body.append(t);
+  }
+  t.textContent = msg;
+}
+async function getLocalEngine(modelId){
+  if(LOCAL_AI.engine && LOCAL_AI.id === modelId) return LOCAL_AI.engine;
+  if(LOCAL_AI.pending && LOCAL_AI.pendingId === modelId) return LOCAL_AI.pending;
+  if(!navigator.gpu) throw new Error('WebGPU is not available. Use a recent desktop Chrome or Edge.');
+  LOCAL_AI.pendingId = modelId;
+  LOCAL_AI.pending = (async () => {
+    try{
+      const webllm = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm');
+      const engine = await webllm.CreateMLCEngine(modelId, {
+        initProgressCallback: p => localToast('Loading local model… ' + Math.round((p.progress||0)*100) + '%')
+      });
+      LOCAL_AI.engine = engine; LOCAL_AI.id = modelId;
+      return engine;
+    } finally { LOCAL_AI.pending = null; localToast(''); }
+  })();
+  return LOCAL_AI.pending;
+}
+async function callLocalAI(system){
+  const c = loadAiCfg();
+  const engine = await getLocalEngine(c.model.trim());
+  const out = await engine.chat.completions.create({
+    messages: [{role:'system', content: system}, ...aiHistory()],
+    temperature: 0.85,
+    max_tokens: 350
+  });
+  return ((out.choices && out.choices[0] && out.choices[0].message && out.choices[0].message.content) || '').trim() || null;
+}
 async function callRealAI(userText){
   const c = loadAiCfg();
-  if(!c.key || !c.base || !c.model || c.preset === 'off') return null;
+  if(c.preset === 'off' || !c.model) return null;
+  if(c.preset !== 'local' && (!c.key || !c.base)) return null;
   const a = currentAss;
   const system = [
     `You are ${a.name}. Role: ${a.role || 'assistant'}.`,
@@ -1028,6 +1076,7 @@ async function callRealAI(userText){
     `Folders you can mention: ${aiCatalogLine()}.`,
     `Stay in character. Keep replies under 120 words. Do not invent filenames that are not in the folders above.`
   ].join('\n');
+  if(c.preset === 'local') return callLocalAI(system);
   const url = c.base.replace(/\/+$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
@@ -1612,11 +1661,13 @@ function assistantPage(){
             assistantPage();
           }}, Object.entries(AI_PRESETS).map(([k,v]) => el('option', {value:k, ...(k===cfg.preset?{selected:''}:{})}, v.label)));
           const baseIn = el('input', {type:'text', value: cfg.base || '', placeholder:'https://api.example.com/v1', onchange: e => { cfg.base = e.target.value.trim(); cfg.preset = 'custom'; saveAiCfg(cfg); }});
-          const modelIn = el('input', {type:'text', value: cfg.model || '', placeholder:'model id', onchange: e => { cfg.model = e.target.value.trim(); saveAiCfg(cfg); }});
+          const modelIn = el('input', {type:'text', value: cfg.model || '', placeholder:'model id', list:'localModelList', onchange: e => { cfg.model = e.target.value.trim(); saveAiCfg(cfg); }});
           const keyIn = el('input', {type:'password', value: cfg.key || '', placeholder:'API key', autocomplete:'off', onchange: e => { cfg.key = e.target.value.trim(); saveAiCfg(cfg); }});
           return [
             el('p', {class:'h'}, 'AI model (optional)'),
             el('label', {}, 'Provider'), presetSel,
+            el('datalist', {id:'localModelList'}, ...LOCAL_MODELS.map(m => el('option', {value:m}))),
+            ...(cfg.preset === 'local' ? [el('p', {class:'h'}, 'In-browser model: pick or type a WebLLM model id below. The first message downloads it (0.7–2.5 GB), then it runs offline. Needs desktop Chrome or Edge. Base URL and key are ignored.')] : []),
             el('label', {}, 'Base URL (OpenAI-compatible, no /chat/completions)'), baseIn,
             el('label', {}, 'Model id'), modelIn,
             el('label', {}, 'API key — stored only in this browser'), keyIn,
@@ -1624,9 +1675,10 @@ function assistantPage(){
               ? 'Live model is on. Chat uses it; file cards still come from your library search. Clear the key to go back to built-in replies.'
               : 'Leave this blank to keep the built-in replies. A free Groq key from console.groq.com works. The key is never uploaded with Export.'),
             el('button', {onclick: async () => {
-              if(!cfg.key || !cfg.base || !cfg.model){ alert('Choose a provider, model, and key first.'); return; }
+              if(cfg.preset !== 'local' && (!cfg.key || !cfg.base || !cfg.model)){ alert('Choose a provider, model, and key first.'); return; }
               saveAiCfg(cfg);
               try{
+                if(cfg.preset === 'local') alert('Loading the local model. A progress box appears by the chat button; this can take a few minutes the first time.');
                 const text = await callRealAI('Reply with the single word ready.');
                 alert(text ? ('Connected. Model said: ' + text.slice(0, 180)) : 'Connected, but the model returned an empty reply.');
               }catch(err){ alert('Could not reach the model:\n' + (err.message || err)); }
