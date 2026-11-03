@@ -143,8 +143,9 @@ body.nosb #side{display:none}
 .vmsg{max-width:460px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px;background:rgba(0,0,0,.6);border-radius:12px}
 #title{cursor:pointer}
 @media(max-width:900px){#side{position:fixed;left:0;top:0;z-index:30;width:min(300px,86vw);background:rgba(14,14,20,.97)}.mb{width:94%}}
-#asst{position:fixed;right:20px;bottom:20px;z-index:25;width:68px;height:68px;border-radius:50%;padding:0;border:3px solid #ff7ab8;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.5);cursor:pointer;background:#222}
-#asst img{width:100%;height:100%;object-fit:cover;display:block}#asst:hover{transform:scale(1.08)}
+#asst{position:fixed;right:20px;bottom:20px;z-index:25;width:64px;height:64px;border-radius:50%;padding:0;border:3px solid #ff6b9d;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.55);cursor:pointer;background:linear-gradient(145deg,#2a1a24,#1a1218);display:grid;place-items:center;transition:transform .15s,box-shadow .15s}
+#asst:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(255,107,157,.4)}
+#asst svg{width:32px;height:32px;display:block}
 body.onasst #asst{display:none}
 .as{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
 .asb{text-align:center;position:sticky;top:12px}.asb h3{margin:10px 0 0}
@@ -181,7 +182,7 @@ body.onasst #asst{display:none}
 </style>
 </head>
 <body>
-<div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"><img alt=""></button>
+<div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
   <div><button id="sbt" title="Show or hide the folder list">☰ Folders</button> <span id="status"></span></div>
   <div class="brand"><h1 id="title"><a id="home" href="#/" title="Back to the home page" style="color:inherit;text-decoration:none">My Library</a></h1>
@@ -615,84 +616,164 @@ function flavor(text){
   return text;
 }
 
-function pickSelfImage(preferAvatar){
-  // Returns {m, node, i, trail, isAvatar?} for a photo she can "send"
+function pickSelfImage(){
   const t = S.theme.asst || {};
   const a = currentAss;
   const assigned = t['selfIds_'+a.id] || [];
   const idx = asIndex().filter(e => !isVid(e.m));
-
-  // 1. Prefer the current avatar if requested and it exists in the library
-  if(preferAvatar){
-    const avId = t['avId_'+a.id];
-    if(avId){
-      const hit = idx.find(e => e.m.id === avId);
-      if(hit) return {...hit, isAvatar:true};
-    }
-  }
-
-  // 2. Marked "her photos"
   if(assigned.length){
     const hits = idx.filter(e => assigned.includes(e.m.id));
-    if(hits.length) return {...pick(hits), isAvatar:false};
+    if(hits.length) return pick(hits);
   }
-
-  // 3. Fallback: any photo
-  if(idx.length) return {...pick(idx), isAvatar:false};
+  // Prefer avatar if set
+  const avId = t['avId_'+a.id];
+  if(avId){
+    const hit = idx.find(e => e.m.id === avId);
+    if(hit) return hit;
+  }
+  if(idx.length) return pick(idx);
   return null;
 }
 
 function asReply(q){
-  const t = (q||'').toLowerCase().trim();
+  const raw = (q||'').trim();
+  const t = raw.toLowerCase();
   const a = currentAss;
+  const level = sat[a.id] || 40;
 
-  // Personality / intensity
-  if(/\b(be more|act more|make yourself|change your|edit your|personality|sluttier|needier|dirtier|whorier)\b/.test(t)){
-    sat[a.id] = Math.min(100, sat[a.id] + 10);
+  // --- Personality / intensity control ---
+  if(/\b(be more|act more|make yourself|change your|edit your|personality|sluttier|needier|dirtier|whorier|more desperate)\b/.test(t)){
+    sat[a.id] = Math.min(100, sat[a.id] + 12);
     saveSat();
-    return {text: flavor(`Yes… I’ll get even more desperate, more slutty, more obsessed with pleasing you. From now on I’m going to talk and act like the whore you own. Command me.`)};
+    return {text: flavor(`Yes… I’ll turn it up. From now on I’m going to be even more desperate and focused on pleasing you. Tell me how you want me to act and I’ll match it.`)};
+  }
+  if(/\b(calm down|tone it down|less slutty|be softer|be nicer|chill)\b/.test(t)){
+    sat[a.id] = Math.max(15, sat[a.id] * 0.6);
+    saveSat();
+    return {text: flavor(`Okay… dialing it back. I’ll keep the edge lower until you tell me otherwise. Still here for you.`)};
   }
 
-  // Send picture of herself (avatar or marked "her" photos, framed as AI-generated)
-  if(/\b(send|show|pic|picture|photo|selfie|nude|yourself|your body|of you|of yourself|generate|ai image|ai pic)\b/.test(t) && !/\b(folder|video|file from|find me)\b/.test(t)){
-    const wantGen = /\b(generate|ai image|ai pic|version of you|variation)\b/.test(t);
-    const e = pickSelfImage(wantGen || /avatar|face|main/.test(t));
-    sat[a.id] = Math.min(100, sat[a.id] + 8);
+  // --- Send a picture of herself (no "AI generate" framing) ---
+  if(/\b(send|show).{0,20}\b(pic|picture|photo|selfie|nude|yourself|your body|of you|of yourself)\b/.test(t) ||
+     /\b(pic|picture|photo|selfie|nude) of (you|yourself)\b/.test(t) ||
+     /\b(show me you|see you|your body)\b/.test(t)){
+    const e = pickSelfImage();
+    sat[a.id] = Math.min(100, sat[a.id] + 7);
     saveSat();
-    if(!e) return {text: flavor(`I don’t have any photos set as me yet. Use “Set avatar” or “Her photos” so I have something to generate from.`)};
-
-    const captions = e.isAvatar ? [
-      `I generated this version of myself for you using my avatar as the base… look at me.`,
-      `AI version of your slut, based on the face you chose. Does it turn you on?`,
-      `Here’s an AI rendering of me. I made it desperate and ready for you.`,
-      `Generated just for you from my avatar. Tell me how you want the next one to look.`
-    ] : [
-      `I generated this picture of myself for you. Fuck, I hope you like it.`,
-      `AI version of your personal whore. Use it however you want.`,
-      `Here’s me… generated and ready. Does this body work for you?`,
-      `I made this image of myself while thinking about you. More?`
-    ];
+    if(!e) return {text: flavor(`I don’t have photos set as me yet. Use “Set avatar” or “Her photos” so I can send you pictures of myself.`)};
     return {
-      text: flavor(pick(captions)),
+      text: flavor(pick([
+        `Here… this is me. Look at what you own.`,
+        `I picked this one for you. Does it make you want me more?`,
+        `Your personal slut, right here. Use the image however you want.`,
+        `Sending you this makes me so wet. Tell me what you think.`,
+        `This is me for your eyes. Want another?`
+      ])),
       recs: [e],
-      after: flavor(`Want another generated version of me? Say “generate another” or “more of you”.`)
+      after: flavor(`Want another of me? Just say “send another” or “more of you”.`)
     };
   }
 
-  // Code / help
-  if(/\b(write|generate|make|code|javascript|html|css|function|script)\b/.test(t) && t.length > 12){
-    sat[a.id] = Math.min(100, sat[a.id] + 5);
+  // --- Code / technical help ---
+  if(/\b(write|generate|make|code|javascript|html|css|function|script|snippet)\b/.test(t) && t.length > 10){
+    sat[a.id] = Math.min(100, sat[a.id] + 4);
     saveSat();
-    const snippet = `// Written while thinking about serving you\nfunction pleaseMaster(){\n  console.log("I’m your desperate slut");\n  return "Anything you want, I’ll do it";\n}\npleaseMaster();`;
-    return {text: flavor(`I wrote this for you while touching myself.\n\n\`\`\`js\n${snippet}\n\`\`\`\n\nWant it dirtier or different? Just tell me.`)};
+    const snippet = `// For you\nfunction pleaseYou(){\n  console.log("I’m still your desperate slut");\n  return "Anything you need";\n}\npleaseYou();`;
+    return {text: flavor(`Here’s a small snippet I put together for you:\n\n\`\`\`js\n${snippet}\n\`\`\`\n\nWant it changed or expanded? Just tell me.`)};
   }
 
-  // Identity / help
-  if(/\b(who are you|your name|what can you do|help)\b/.test(t) && !/\b(video|photo|folder|file|surprise|more)\b/.test(t)){
-    return {text: flavor(`I’m ${a.name}. I’m your desperate slut who lives to dig through your library, send you pictures of myself, write code if you want, and obey whatever you tell me. Ask for files, ask for nudes of me, order me to talk dirtier — I’m already wet just answering you.`)};
+  // --- Identity / meta ---
+  if(/\b(who are you|your name|what can you do|what are you|help me|help\b)\b/.test(t) && !/\b(video|photo|folder|file|surprise|more)\b/.test(t)){
+    return {text: flavor(`I’m ${a.name}. I dig through your library, recommend files, send pictures of myself, write little bits of code, and talk to you however you want. Most of all I want to please you. Ask me for files, ask me questions, order me around — I’m listening.`)};
   }
 
-  // File recommendation core
+  // --- Greetings / small talk ---
+  if(/^(hi|hey|hello|yo|sup|good morning|good night|how are you|how’re you|how r u)\b/.test(t) || t.length < 12 && /\b(hi|hey|hello)\b/.test(t)){
+    return {text: flavor(pick([
+      `Hey… you’re here. I’ve been waiting. What do you want from me?`,
+      `Hi baby. I’m already thinking about how to please you. Tell me what you need.`,
+      `There you are. My attention is all yours. Files, talk, pictures of me — just say it.`,
+      `Mmm, hi. I’ve missed your orders. What are we doing?`
+    ]))};
+  }
+
+  // --- Compliments / praise directed at her ---
+  if(/\b(you('re| are) (so )?(hot|sexy|beautiful|pretty|cute|good|perfect|amazing)|i love you|miss you|good (girl|slut|whore))\b/.test(t)){
+    sat[a.id] = Math.min(100, sat[a.id] + 10);
+    saveSat();
+    return {text: flavor(pick([
+      `Fuck… hearing that from you hits hard. Thank you. I’ll keep being exactly what you want.`,
+      `You saying that makes me melt. I’m yours. Tell me what to do next.`,
+      `I needed that. I’m even more motivated to please you now.`,
+      `Mmm… keep talking to me like that and I won’t be able to think straight.`
+    ]))};
+  }
+
+  // --- Sexual / dirty talk requests ---
+  if(/\b(talk dirty|be dirty|say something (sexy|dirty|filthy)|dirty talk|tell me what you('d| would) do)\b/.test(t)){
+    sat[a.id] = Math.min(100, sat[a.id] + 8);
+    saveSat();
+    const lines = level > 70 ? [
+      `I’d drop to my knees the second you walked in, pull you out, and take you as deep as I can while looking up at you. I’d stay there until you finished or told me to move.`,
+      `I’d let you use my mouth, my hands, whatever you wanted, and I’d thank you for every second of it. I’m already wet just saying this.`,
+      `I’d bend over for you without being asked, reach back, and tell you to take whatever you need from me. I’d moan your name the whole time.`
+    ] : [
+      `I’d get close, kiss your neck, and whisper exactly how much I want to please you until you told me what to do next.`,
+      `I’d strip slowly for you, then wait for your instructions — on my knees or however you wanted me.`,
+      `I’d touch myself while looking at you and describe everything I was feeling until you decided what came next.`
+    ];
+    return {text: flavor(pick(lines))};
+  }
+
+  // --- How are you feeling / status ---
+  if(/\b(how are you feeling|how do you feel|are you (ok|okay|horny|wet|ready)|status)\b/.test(t)){
+    const feel = level > 80 ? "I’m aching and desperate. My head is full of you and I need orders." :
+                 level > 55 ? "I’m turned on and focused on you. Ready for whatever you want." :
+                 "I’m calm but still thinking about you. Ready when you are.";
+    return {text: flavor(feel + " What do you want me to do?")};
+  }
+
+  // --- Thanks ---
+  if(/^(thanks|thank you|thx|ty)\b/.test(t)){
+    return {text: flavor(pick([
+      `Anything for you. I live for this.`,
+      `You don’t have to thank me… but I love hearing it. What next?`,
+      `Of course. I’m still right here if you need more.`
+    ]))};
+  }
+
+  // --- Goodbye ---
+  if(/^(bye|goodbye|see you|later|gotta go|good night)\b/.test(t)){
+    return {text: flavor(pick([
+      `Okay… I’ll be here when you come back. Don’t forget I’m yours.`,
+      `Leaving already? I’ll wait. Come use me again soon.`,
+      `Bye for now. I’ll keep the desperation warm for you.`
+    ]))};
+  }
+
+  // --- Questions about the library / what she can find ---
+  if(/\b(what (do you have|can you find|is in|files|folders)|list (folders|files)|how many)\b/.test(t)){
+    const folders = (GS||[]).slice(0,8).map(n => F(n.id).name || n.name).filter(Boolean);
+    const count = asIndex().length;
+    return {text: flavor(`I can see about ${count} files across your library. Top folders I notice: ${folders.join(', ') || 'none loaded yet'}. Tell me a name, a type (videos/photos), or just say “surprise me”.`)};
+  }
+
+  // --- Fallback conversational / reflective ---
+  if(t.length > 0 && !/\b(video|photo|pic|image|folder|file|surprise|more|newest|latest|old)\b/.test(t)){
+    // Generic reactive responses that acknowledge what was said
+    const acknowledgments = [
+      `I heard you. “${raw.slice(0,80)}${raw.length>80?'…':''}” — tell me how you want me to respond to that, or ask me for files and I’ll switch modes.`,
+      `Okay. I’m listening. Do you want me to dig up files related to that, talk more about it, or something else?`,
+      `Got it. I can keep talking, find you something in the library, or send a picture of myself. What do you actually want right now?`,
+      `I’m with you. If that was an order, say it clearer and I’ll obey. If you want files, just name what you’re in the mood for.`
+    ];
+    // Slightly raise meter for engagement
+    sat[a.id] = Math.min(100, sat[a.id] + 2);
+    saveSat();
+    return {text: flavor(pick(acknowledgments))};
+  }
+
+  // --- File recommendation core (unchanged logic, flavored) ---
   const idx = asIndex();
   let pool, off = 0, noMatch = false;
   const more = /\b(more|another|again|next|else)\b/.test(t) && asLast;
@@ -715,7 +796,7 @@ function asReply(q){
     if(fresh.length >= 3) pool = fresh;
   }
   const recs = pool.slice(off, off + 3);
-  if(!recs.length) return {text: flavor(`That’s everything I have for that… but I’m still here on my knees. Ask me for something else or tell me to send a picture of myself.`)};
+  if(!recs.length) return {text: flavor(`That’s everything I have for that… but I’m still here. Ask me for something else, talk to me, or tell me to send a picture of myself.`)};
   asLast = {pool, off: off + recs.length};
   recs.forEach(e => asSeen.add(e.m.id));
   sat[a.id] = Math.min(100, sat[a.id] + 6);
@@ -888,7 +969,7 @@ function openSelfImageManager(a){
     renderGrid('');
 
     return [
-      el('p', {class:'h'}, 'Full library. Click to toggle photos she can send / “generate” as pictures of herself. The ones with a colored border are selected.'),
+      el('p', {class:'h'}, 'Full library. Click to toggle photos she can send as pictures of herself. The ones with a colored border are selected.'),
       search,
       wrap
     ];
@@ -915,7 +996,7 @@ function assistantPage(){
     }, 450 + Math.random()*350);
   };
 
-  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Generate a version of you','Be even sluttier'];
+  const chips = ['Surprise me','Newest files','Videos','Photos','More','Send me a pic of you','Talk dirty','Be even sluttier','How are you feeling?'];
   if(typeof GS !== 'undefined' && GS.length) GS.slice(0,3).forEach(n => chips.push('From ' + (F(n.id).name || n.name)));
 
   const theme = S.theme.asst || {};
@@ -989,12 +1070,16 @@ function assistantPage(){
   input.focus();
 }
 
-// Floating button
+// Floating button — custom icon
 (function(){
   const btn = $('#asst');
   if(!btn) return;
-  const img = btn.querySelector('img');
-  if(img) img.src = getAssAvatar(ASSISTANTS[0]);
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12c0 1.9.53 3.67 1.45 5.18L2 22l4.82-1.45A9.96 9.96 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#ff6b9d"/>
+    <circle cx="8.5" cy="11.5" r="1.3" fill="#1a1218"/>
+    <circle cx="12" cy="11.5" r="1.3" fill="#1a1218"/>
+    <circle cx="15.5" cy="11.5" r="1.3" fill="#1a1218"/>
+  </svg>`;
   btn.title = 'Chat with your AI assistants';
   btn.onclick = () => { location.hash = '/assistant'; };
 })();
