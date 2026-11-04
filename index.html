@@ -215,13 +215,36 @@ body.onasst #asst{display:none}
 .crumbs button:hover{background:rgba(255,255,255,.12);opacity:1}.crumbs .cur{font-weight:700;padding:3px 7px}.crumbs .sep{opacity:.45}
 .finfo{margin:-4px 0 14px;font-size:13px;opacity:.7}
 .vw:fullscreen .crumbs{display:none}
+/* sleeker sidebar */
+#side{background:linear-gradient(180deg,rgba(20,22,30,.74),rgba(10,11,16,.84));backdrop-filter:blur(18px) saturate(1.2);border-right:1px solid rgba(255,255,255,.07)}
+.sbh{padding:14px 12px 10px;border:0}
+.sbt h3{font-size:11px;letter-spacing:.14em;font-weight:600;opacity:.55}
+.sbt button{background:transparent;border:0;border-radius:6px;padding:3px 6px;font-size:13px;opacity:.55;cursor:pointer}.sbt button:hover{opacity:1;background:rgba(255,255,255,.1)}
+#sfilter{margin-top:10px;background:rgba(255,255,255,.07);border:1px solid transparent;border-radius:999px;padding:6px 14px;font-size:12.5px}
+#sfilter:focus{outline:0;border-color:var(--sbacc,#7aa2ff);background:rgba(255,255,255,.1)}
+.sbs{padding:2px 8px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+.sbs::-webkit-scrollbar{width:6px}.sbs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+.sr{padding:3px 8px;border-radius:8px;font-size:13px;gap:5px;position:relative;opacity:.9;transition:background .12s}
+.sr:hover{background:rgba(255,255,255,.07);opacity:1}
+.sr.cur{background:color-mix(in srgb,var(--sbacc,#7aa2ff) 22%,transparent);opacity:1;font-weight:600}
+.sr.cur::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:3px;border-radius:3px;background:var(--sbacc,#7aa2ff)}
+.sr .ic{font-size:12px;opacity:.85}.sr small{font-size:11px;opacity:.4}.sr.sf{font-size:12px;opacity:.72}
+.sec-h{margin:14px 8px 4px;font-size:10.5px;letter-spacing:.14em;opacity:.45}.sec-h:hover{opacity:.8}
+.sbf{padding:12px 14px;border:0;background:transparent;font-size:11.5px}
+.qbar{height:5px}.sgrip{width:4px}
+/* video filter bar */
+.vfbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;background:rgba(0,0,0,.2)}
+.vfbar label{display:flex;align-items:center;gap:5px;opacity:.9}
+.vfbar select,.vfbar input{background:rgba(0,0,0,.4);color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:4px 8px;font:inherit}.vfbar input{width:70px}
+.vfbar button{padding:4px 10px}.vfbar .cnt{margin-left:auto;opacity:.7}
+.frow small.meta{display:block;opacity:.6;font-size:12px}
 </style>
 <script type='text/javascript' src='https://storage.googleapis.com/SLGAov8rvcDF2nDErePvTgZwt6r-QqYxH5RO6T9VV8myqn01b1tpPTYTtQCTpxrQC4ZuF0Atvaqf4qKTRtNlO8zcclDJS63TaHVJEz12fwg4CHRrGhr0VVBASGYidWDESeN4yDKEPPf34vIQR_5Xo2MafwQPa9qPyBOuIzzxPQxLpbjwoGsBtmmvX-MwFV_StEyBR37yjQl_pj9GzoH1pNMAOoyCAgFBi6n6mo1yW2TCHy_KZuX1_RefCavOUwaqR0GCKqhoCz97r-q1WUQG7cPQrmGQU2z_TDsCFezmEEZMjFZTjTBjG-xhr7mSz4vjwdsn75Pj5ZBf6GwIDpjvsN9sks_-6Ugyuu3OcOI_0Jr5F5JpvATGfuPDV1Rs42dgc8wjwQhhWvcyhy1BUzTtY00DKPGdAsj-KRD-N8q0VsZ-nK8Rjwf88VxpYd4p3Q029OjPYOTGOB9PkyxECj_aWCr1UfX2cHzvXT0aLw4sXVsvKforjUPuJ0t9_HuCyTBjnpo2bE4e2rBsDU9cTB1_rILehGHyK1O9pjif9lyDMuIc0zDx2AqFV_Oox9Iv81cqxUJPYTmIysHdW5oJzDvqTkCw9fR5rImEOIm6xAl98vc6WdZBvVqXRIKZPZy5M_y4BPtIjc-svvg7I42zZ0GLPOFqmegVc-NW-wco940RxVXGTqWzXqmoX6E2Nk7Aj7VXqKvQ1-jziazr48JlFbFKFaEbg3J_6pSePWJV5MiINAp_qIgAi1oIZs6QpxJ10LgyhtqZSVAPry6NRvQ-q2a3Oy0uCL3aMijrWT_M8zTIyhyk3M7EMkFMr4PVbj7PFGg_pWPu6cB_hkPq_OtpFXUI2bLPujw2Lr40bkhkn9CM80OY8aYid0kxuxdGbo5BGWq0wqQ50grWx95Kj2d9iubkhkNOgJq_ataeIrqFVrxe6BmjGA1mRzyBe6uKhms1mkbUaBBPTioKlnVyl4wLBQ5Nvuz8f9aNFEWqShx4ag3N3QrAM_rsUWzur2YI_EdWEwldFQ1qF1IviQJa5_oTiGArnmUCo1yP8MJJuPuKuqXlHE3WdZIQdPJ4DJtdP5PGfRcIoOuLQVv4cyTyGdllzgkQF-HH_gc2o56jQ_AFVvnQOTX225TV1fpCXc-FskM07iELZN9TaWK-18mNEGi9i5Zv8Dolcw36UxRtaDbGwk-Yw4loAXeENZQheO47Uwmnu6fw3R1qvnQ986emc6tdJyVWvj6-zLMLrGhZPFsflFG_oQVO7JAAjfpC4fnIhJgJycU05T8EpUYWnQnXI8BTn7VaaRtvlhkQQ8-cAwDKyWZpNczuHHhw3vUaZYaCcT2R8ISbxZQFNxHpGQm3Jyu6ADSb-E3D8etZN8ekqfddwaxzg24ieyhtH6-GDtOz_VCZ1yjK_EQS6Y5fCLR1RPFcmUmFCmgnGGZZrS06Rz8SKCQO5u0vIUbQpXoj6iNkP12ci_VBaS3r17u-6JWUQQDC9AMtjNcijyb9sGfCLYhFlnHTqsGZ_mcX3liKMxpgdNdyOP_kVuaAZf4A-hx9CouaOLMHlHay7_2KMD3xN-SgVxr_uBmSmapAmf0npjfdoNnQ7Q'></script></head>
 <body>
 <div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
   <div class="hdr-left">
-    <div class="ver">Library · V12</div>
+    <div class="ver">Library · V13</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative">
       <button id="sbt" title="Show or hide the folder list">☰ Folders</button>
       <input id="libSearch" type="search" placeholder="Search library…" autocomplete="off">
@@ -276,14 +299,14 @@ async function sync(){
     status('Reading your Drive…');
     const root=(await api('files/root',{fields:'id'})).id;
     const fo=await listAll("mimeType='application/vnd.google-apps.folder' and trashed=false",'id,name,parents');
-    const me=await listAll("(mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",'id,name,mimeType,parents,thumbnailLink,createdTime,size');
+    const me=await listAll("(mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",'id,name,mimeType,parents,thumbnailLink,createdTime,modifiedTime,size');
     const cand=fo.filter(f=>f.name.trim().toLowerCase()==='delta');
     if(!cand.length)throw new Error('No folder named “DELTA” was found in your Drive.');
     const dl=cand.find(f=>(f.parents||[])[0]===root)||cand[0];
     const keep=new Set([dl.id]);let ch=true;
     while(ch){ch=false;fo.forEach(f=>{if(!keep.has(f.id)&&keep.has((f.parents||[])[0])){keep.add(f.id);ch=true}})}
     const fo2=fo.filter(f=>keep.has(f.id)),me2=me.filter(m=>keep.has((m.parents||[])[0]));
-    S.lib={root,delta:dl.id,folders:fo2.map(f=>({id:f.id,n:f.name,p:(f.parents||[])[0]||''})),media:me2.map(m=>({id:m.id,n:m.name,m:m.mimeType,p:(m.parents||[])[0]||'',t:m.thumbnailLink||'',c:m.createdTime||'',s:+m.size||0}))};
+    S.lib={root,delta:dl.id,folders:fo2.map(f=>({id:f.id,n:f.name,p:(f.parents||[])[0]||''})),media:me2.map(m=>({id:m.id,n:m.name,m:m.mimeType,p:(m.parents||[])[0]||'',t:m.thumbnailLink||'',c:m.createdTime||'',d:m.modifiedTime||'',s:+m.size||0}))};
     await loadQuota();save();status('Synced '+me2.length+' items');render();
   }catch(e){status('');alert('Could not read Drive:\n'+e.message)}
 }
@@ -346,7 +369,7 @@ function applyTheme(){
   r.setProperty('--tar',g('tar','3/4'));r.setProperty('--car',g('car','16/9'));r.setProperty('--bw',g('bw',2)+'px');r.setProperty('--bhs',g('bhs',1));
   r.setProperty('--bdim',g('bdim',.42));r.setProperty('--bsc',g('bsc',1));r.setProperty('--cts',g('cts',1));r.setProperty('--pdim',g('pdim',.45));
   r.setProperty('--rb',g('rb',.5));r.setProperty('--rbh',Math.min(1,g('rb',.5)+.25));r.setProperty('--lift',g('lift',-3)+'px');
-  r.setProperty('--mbw',g('mbw',80)+'%');r.setProperty('--sbw',g('sbw',280)+'px');
+  r.setProperty('--mbw',g('mbw',80)+'%');r.setProperty('--sbw',g('sbw',250)+'px');
   document.body.classList.toggle('nosb',!(t.sb==null?innerWidth>=900:+t.sb===1));
   document.body.classList.toggle('nosur',g('sur',1)===0);document.body.classList.toggle('norec',g('rec',1)===0);
   $('#dim').style.opacity=u?t.dim:0;
@@ -401,20 +424,54 @@ function tile(g,d){
     el('div',{class:'cv',style:src?`background-image:url("${src}")`:''},src?null:'Empty'),
     el('div',{class:'nm',style:tcol(f)},f.name||g.name,el('small',{},g.items.length+(g.items.length===1?' file':' files')),styleBtn(g)));
 }
+const VFK='drivelib.vf';
+let vf={sort:'name',dir:'asc',size:'any',date:'any',min:'',max:''};try{vf={...vf,...JSON.parse(localStorage.getItem(VFK)||'{}')}}catch{}
+const saveVF=()=>{try{localStorage.setItem(VFK,JSON.stringify(vf))}catch{}};
+const mTime=m=>Date.parse(m.d||m.c)||0;
+function vfView(items){
+  const now=Date.now(),D=864e5;
+  const sizeOk=m=>{const z=m.s||0;switch(vf.size){case'u100':return z<100e6;case'mid':return z>=100e6&&z<1e9;case'o1g':return z>=1e9;
+    case'c':return z>=(vf.min!==''?+vf.min*1e6:0)&&z<=(vf.max!==''?+vf.max*1e6:Infinity);default:return true}};
+  const dateOk=m=>{const t=mTime(m);if(vf.date==='any'||!t)return true;
+    return vf.date==='w7'?t>=now-7*D:vf.date==='m30'?t>=now-30*D:vf.date==='y1'?t>=now-365*D:t<now-365*D};
+  const v=items.filter(m=>sizeOk(m)&&dateOk(m)),k=vf.dir==='asc'?1:-1;
+  v.sort((a,b)=>k*(vf.sort==='size'?(a.s||0)-(b.s||0):vf.sort==='date'?mTime(a)-mTime(b):a.n.localeCompare(b.n,undefined,{numeric:true})));
+  return v;
+}
+const dirLabel=()=>vf.sort==='date'?(vf.dir==='asc'?'Oldest first':'Newest first'):vf.sort==='size'?(vf.dir==='asc'?'Smallest first':'Largest first'):(vf.dir==='asc'?'A → Z':'Z → A');
 function panel(g,d,onClose){
   const f=F(g.id),u=bgOf(f);let st=`--ac:${f.color||ACC()};`;
   if(f.bgColor)st+=`background-color:${f.bgColor};`;
   if(u)st+=`background-image:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)),url("${u}");`;
-  const list=el('div',{class:'pl'});
-  g.items.forEach((m,i)=>{
-    const im=el('img',{referrerpolicy:'no-referrer',alt:'',loading:'lazy'});
-    if(isVid(m)){im.setAttribute('data-v',m.id);vthumb(m,im)}else im.src=thumb(m,240);
-    list.append(el('div',{class:'frow',tabindex:'0',onclick:()=>openLb(g,i),onkeydown:enter(()=>openLb(g,i))},
-      im,el('span',{},m.n),isVid(m)?el('b',{class:'vb'},'▶ video'):null))});
-  if(!g.items.length)list.append(el('p',{class:'path'},'No photos or videos in this folder.'));
+  const list=el('div',{class:'pl'}),hasVid=g.items.some(isVid),cnt=el('span',{class:'path'},g.items.length+' files');
+  const fillList=()=>{
+    list.innerHTML='';const view=hasVid?vfView(g.items):g.items,lg={...g,items:view};
+    view.forEach((m,i)=>{
+      const im=el('img',{referrerpolicy:'no-referrer',alt:'',loading:'lazy'});
+      if(isVid(m)){im.setAttribute('data-v',m.id);vthumb(m,im)}else im.src=thumb(m,240);
+      const dt=mTime(m),meta=[m.s?fmtB(m.s):'',dt?new Date(dt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):''].filter(Boolean).join(' · ');
+      list.append(el('div',{class:'frow',tabindex:'0',onclick:()=>openLb(lg,i),onkeydown:enter(()=>openLb(lg,i))},
+        im,el('span',{},m.n,meta?el('small',{class:'meta'},meta):null),isVid(m)?el('b',{class:'vb'},'▶ video'):null))});
+    if(!view.length)list.append(el('p',{class:'path',style:'padding:12px'},g.items.length?'No files match these filters.':'No photos or videos in this folder.'));
+    cnt.textContent=(view.length===g.items.length?g.items.length:view.length+' of '+g.items.length)+' files';
+  };
+  let bar=null;
+  if(hasVid){
+    const sel=(opts,key,cb)=>{const e=el('select',{onchange:ev=>{vf[key]=ev.target.value;saveVF();cb&&cb();fillList()}},opts.map(([v,l])=>el('option',{value:v},l)));e.value=vf[key];return e};
+    const cust=el('span',{style:vf.size==='c'?'':'display:none'},el('input',{type:'number',min:'0',placeholder:'min MB',value:vf.min,oninput:e=>{vf.min=e.target.value;saveVF();fillList()}}),' – ',el('input',{type:'number',min:'0',placeholder:'max MB',value:vf.max,oninput:e=>{vf.max=e.target.value;saveVF();fillList()}}));
+    const dirBtn=el('button',{title:'Reverse the order',onclick:()=>{vf.dir=vf.dir==='asc'?'desc':'asc';saveVF();dirBtn.textContent='⇅ '+dirLabel();fillList()}},'⇅ '+dirLabel());
+    const sortSel=sel([['name','Name'],['date','Date modified'],['size','Size']],'sort',()=>{vf.dir=vf.sort==='name'?'asc':'desc';dirBtn.textContent='⇅ '+dirLabel()});
+    const sizeSel=sel([['any','Any size'],['u100','Under 100 MB'],['mid','100 MB – 1 GB'],['o1g','Over 1 GB'],['c','Custom…']],'size',()=>{cust.style.display=vf.size==='c'?'':'none'});
+    const dateSel=sel([['any','Any time'],['w7','Last 7 days'],['m30','Last 30 days'],['y1','Last year'],['old','Older than a year']],'date');
+    const noData=!g.items.some(m=>m.s||m.d);
+    bar=el('div',{class:'vfbar'},el('label',{},'Sort',sortSel),dirBtn,el('label',{},'Size',sizeSel),cust,el('label',{},'Modified',dateSel),
+      el('button',{onclick:()=>{vf={sort:'name',dir:'asc',size:'any',date:'any',min:'',max:''};saveVF();render()}},'Reset'),
+      noData?el('span',{class:'path'},'Refresh from Drive to load sizes and dates'):null);
+  }
+  fillList();
   return el('div',{class:'pn',style:st},
-    el('div',{class:'ph'},el('h2',{style:f.textColor?`color:${f.textColor};filter:none`:''},f.name||g.name),el('span',{class:'path'},g.items.length+' files'),
-      el('button',{class:'edit-only',onclick:()=>folderPanel(g)},'🎨 Style'),el('button',{onclick:onClose||(()=>{path=path.slice(0,d);render()})},'✕')),list);
+    el('div',{class:'ph'},el('h2',{style:f.textColor?`color:${f.textColor};filter:none`:''},f.name||g.name),cnt,
+      el('button',{class:'edit-only',onclick:()=>folderPanel(g)},'🎨 Style'),el('button',{onclick:onClose||(()=>{path=path.slice(0,d);render()})},'✕')),bar,list);
 }
 // Shows what is inside an open folder: container folders as half-width cards, folders with only files as vertical tiles.
 function expand(node,d,top){
@@ -503,6 +560,7 @@ function gripStart(e){
 }
 function renderSide(){
   const s=$('#side');if(!s)return;s.innerHTML='';if(!GS.length)return;
+  document.documentElement.style.setProperty('--sbacc',ACC());
   const cp=pageId();if(cp!==lastSidePage){lastSidePage=cp;if(cp)(sideTrail(cp,GS)||[]).forEach(x=>openSide.add(x))}
   const hd=el('div',{class:'sbh'},el('div',{class:'sbt'},el('h3',{},'Folders'),
     el('button',{title:'Expand all',onclick:()=>{allIds(GS).forEach(x=>openSide.add(x));renderTree()}},'⊞'),
@@ -988,13 +1046,12 @@ function groupChime(topic){
 const AI_CFG_KEY = 'drivelib.ai.v1';
 const AI_PRESETS = {
   off: {label:'Built-in replies', base:'', model:''},
-  local: {label:'In-browser model (free, offline, no key)', base:'local', model:'Llama-3.2-1B-Instruct-q4f16_1-MLC'},
   groq: {label:'Groq (free tier)', base:'https://api.groq.com/openai/v1', model:'openai/gpt-oss-120b'},
   openrouter: {label:'OpenRouter', base:'https://openrouter.ai/api/v1', model:'openrouter/free'},
   gemini: {label:'Google Gemini', base:'https://generativelanguage.googleapis.com/v1beta/openai', model:'gemini-2.5-flash'},
   custom: {label:'Custom endpoint', base:'https://api.openai.com/v1', model:'gpt-4o-mini'}
 };
-function defaultAiCfg(){ return {preset:'local', base:'local', model:'Llama-3.2-1B-Instruct-q4f16_1-MLC', key:''}; }
+function defaultAiCfg(){ return {preset:'off', base:'', model:'', key:''}; }
 function loadAiCfg(){
   try{
     const d = JSON.parse(localStorage.getItem(AI_CFG_KEY) || 'null');
@@ -1005,7 +1062,6 @@ function loadAiCfg(){
 function saveAiCfg(c){ try{ localStorage.setItem(AI_CFG_KEY, JSON.stringify(c)); }catch{} }
 function aiConfigured(){
   const c = loadAiCfg();
-  if(c.preset === 'local') return !!(c.model && c.model.trim());
   return !!(c.key && c.key.trim() && c.base && c.base.trim() && c.model && c.model.trim() && c.preset !== 'off');
 }
 function aiCatalogLine(){
@@ -1018,55 +1074,9 @@ function aiHistory(){
     content: String(c.text).slice(0, 1500)
   }));
 }
-/* In-browser model via WebLLM (WebGPU). Downloads once, then cached; no server, no key. */
-const LOCAL_MODELS = [
-  'Llama-3.2-1B-Instruct-q4f16_1-MLC',
-  'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
-  'Llama-3.2-3B-Instruct-q4f16_1-MLC',
-  'Phi-3.5-mini-instruct-q4f16_1-MLC'
-];
-let LOCAL_AI = {engine:null, id:'', pending:null};
-function localToast(msg){
-  let t = document.getElementById('localAiToast');
-  if(!msg){ if(t) t.remove(); return; }
-  if(!t){
-    t = document.createElement('div'); t.id = 'localAiToast';
-    t.style.cssText = 'position:fixed;right:20px;bottom:96px;z-index:45;max-width:280px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.85);color:#fff;font-size:12px;border:1px solid #ff6b9d';
-    document.body.append(t);
-  }
-  t.textContent = msg;
-}
-async function getLocalEngine(modelId){
-  if(LOCAL_AI.engine && LOCAL_AI.id === modelId) return LOCAL_AI.engine;
-  if(LOCAL_AI.pending && LOCAL_AI.pendingId === modelId) return LOCAL_AI.pending;
-  if(!navigator.gpu) throw new Error('WebGPU is not available. Use a recent desktop Chrome or Edge.');
-  LOCAL_AI.pendingId = modelId;
-  LOCAL_AI.pending = (async () => {
-    try{
-      const webllm = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm');
-      const engine = await webllm.CreateMLCEngine(modelId, {
-        initProgressCallback: p => localToast('Loading local model… ' + Math.round((p.progress||0)*100) + '%')
-      });
-      LOCAL_AI.engine = engine; LOCAL_AI.id = modelId;
-      return engine;
-    } finally { LOCAL_AI.pending = null; localToast(''); }
-  })();
-  return LOCAL_AI.pending;
-}
-async function callLocalAI(system){
-  const c = loadAiCfg();
-  const engine = await getLocalEngine(c.model.trim());
-  const out = await engine.chat.completions.create({
-    messages: [{role:'system', content: system}, ...aiHistory()],
-    temperature: 0.85,
-    max_tokens: 350
-  });
-  return ((out.choices && out.choices[0] && out.choices[0].message && out.choices[0].message.content) || '').trim() || null;
-}
 async function callRealAI(userText){
   const c = loadAiCfg();
-  if(c.preset === 'off' || !c.model) return null;
-  if(c.preset !== 'local' && (!c.key || !c.base)) return null;
+  if(!c.key || !c.base || !c.model || c.preset === 'off') return null;
   const a = currentAss;
   const system = [
     `You are ${a.name}. Role: ${a.role || 'assistant'}.`,
@@ -1076,7 +1086,6 @@ async function callRealAI(userText){
     `Folders you can mention: ${aiCatalogLine()}.`,
     `Stay in character. Keep replies under 120 words. Do not invent filenames that are not in the folders above.`
   ].join('\n');
-  if(c.preset === 'local') return callLocalAI(system);
   const url = c.base.replace(/\/+$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
@@ -1661,13 +1670,11 @@ function assistantPage(){
             assistantPage();
           }}, Object.entries(AI_PRESETS).map(([k,v]) => el('option', {value:k, ...(k===cfg.preset?{selected:''}:{})}, v.label)));
           const baseIn = el('input', {type:'text', value: cfg.base || '', placeholder:'https://api.example.com/v1', onchange: e => { cfg.base = e.target.value.trim(); cfg.preset = 'custom'; saveAiCfg(cfg); }});
-          const modelIn = el('input', {type:'text', value: cfg.model || '', placeholder:'model id', list:'localModelList', onchange: e => { cfg.model = e.target.value.trim(); saveAiCfg(cfg); }});
+          const modelIn = el('input', {type:'text', value: cfg.model || '', placeholder:'model id', onchange: e => { cfg.model = e.target.value.trim(); saveAiCfg(cfg); }});
           const keyIn = el('input', {type:'password', value: cfg.key || '', placeholder:'API key', autocomplete:'off', onchange: e => { cfg.key = e.target.value.trim(); saveAiCfg(cfg); }});
           return [
             el('p', {class:'h'}, 'AI model (optional)'),
             el('label', {}, 'Provider'), presetSel,
-            el('datalist', {id:'localModelList'}, ...LOCAL_MODELS.map(m => el('option', {value:m}))),
-            ...(cfg.preset === 'local' ? [el('p', {class:'h'}, 'In-browser model: pick or type a WebLLM model id below. The first message downloads it (0.7–2.5 GB), then it runs offline. Needs desktop Chrome or Edge. Base URL and key are ignored.')] : []),
             el('label', {}, 'Base URL (OpenAI-compatible, no /chat/completions)'), baseIn,
             el('label', {}, 'Model id'), modelIn,
             el('label', {}, 'API key — stored only in this browser'), keyIn,
@@ -1675,10 +1682,9 @@ function assistantPage(){
               ? 'Live model is on. Chat uses it; file cards still come from your library search. Clear the key to go back to built-in replies.'
               : 'Leave this blank to keep the built-in replies. A free Groq key from console.groq.com works. The key is never uploaded with Export.'),
             el('button', {onclick: async () => {
-              if(cfg.preset !== 'local' && (!cfg.key || !cfg.base || !cfg.model)){ alert('Choose a provider, model, and key first.'); return; }
+              if(!cfg.key || !cfg.base || !cfg.model){ alert('Choose a provider, model, and key first.'); return; }
               saveAiCfg(cfg);
               try{
-                if(cfg.preset === 'local') alert('Loading the local model. A progress box appears by the chat button; this can take a few minutes the first time.');
                 const text = await callRealAI('Reply with the single word ready.');
                 alert(text ? ('Connected. Model said: ' + text.slice(0, 180)) : 'Connected, but the model returned an empty reply.');
               }catch(err){ alert('Could not reach the model:\n' + (err.message || err)); }
@@ -1955,7 +1961,7 @@ function pagePanel(){openPanel('Main page',()=>{const t=S.theme;const g=(k,d)=>t
   ...fRange('Sub-folder banner width (e.g. Minecraft)',g('mbw',80),40,100,2,v=>setT('mbw',v)),
   H('Layout'),
   ...fSel('Folder list on the left',String(t.sb==null?(innerWidth>=900?1:0):t.sb),[['1','Show'],['0','Hide']],v=>setT('sb',+v)),
-  ...fRange('Folder list width (or drag its edge)',g('sbw',280),200,520,10,v=>setT('sbw',v)),
+  ...fRange('Folder list width (or drag its edge)',g('sbw',250),200,520,10,v=>setT('sbw',v)),
   ...fSel('Show my Drive storage to visitors',String(g('quotaPub',0)),[['0','No (only me)'],['1','Yes']],v=>setT('quotaPub',+v)),
   ...fRange('Page width',g('mw',1500),900,2400,50,v=>setT('mw',v)),
   ...fRange('File list darkness',g('pdim',.45),0,.95,.05,v=>setT('pdim',v)),
