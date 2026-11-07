@@ -244,7 +244,7 @@ body.onasst #asst{display:none}
 <div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
   <div class="hdr-left">
-    <div class="ver">Library · V13</div>
+    <div class="ver">Library · V14</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative">
       <button id="sbt" title="Show or hide the folder list">☰ Folders</button>
       <input id="libSearch" type="search" placeholder="Search library…" autocomplete="off">
@@ -274,7 +274,27 @@ function restoreTok(){try{const d=JSON.parse(localStorage.getItem(TK)||'null');i
 
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){S={...S,...d,theme:{...S.theme,...d.theme}}}}catch{}S.vthumbs=S.vthumbs||{};S.collapsed=S.collapsed||{};if(S.vtv!==2){S.vthumbs={};S.vtv=2}}
 let warned=false;
-function save(){if(!owner)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=true;alert('Browser storage is full — use smaller images for backgrounds/covers.')}}}
+const CORE='drivelib.core';let saveT=null;
+const idbOpen=()=>new Promise((res,rej)=>{const r=indexedDB.open('drivelib',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const idbGet=k=>idbOpen().then(db=>new Promise(res=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(undefined)})).catch(()=>undefined);
+const idbSet=(k,v)=>idbOpen().then(db=>new Promise(res=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res(true);t.onerror=()=>res(false)})).catch(()=>false);
+// Your linked Drive is kept in the browser's large database (IndexedDB); the Client ID and "linked" flag also live in a tiny separate key so a full storage can never make you link again.
+function save(){
+  if(!owner)return;
+  try{localStorage.setItem(CORE,JSON.stringify({cid:S.cid,linked:!!(S.linked||S.lib),apiKey:S.apiKey||''}))}catch{}
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>idbSet('S',S).then(ok=>{
+    if(ok){try{localStorage.removeItem(KEY)}catch{}return}
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=true;alert('Your browser could not save the library. Check that storage isn’t blocked or full.')}}}),250);
+}
+async function loadAll(){
+  load();   // older versions kept everything in localStorage
+  let d;try{d=await idbGet('S')}catch{}
+  if(d)S={...S,...d,theme:{...S.theme,...d.theme}};
+  try{const c=JSON.parse(localStorage.getItem(CORE)||'null');if(c){if(c.cid)S.cid=c.cid;if(c.linked)S.linked=true;if(c.apiKey&&!S.apiKey)S.apiKey=c.apiKey}}catch{}
+  S.vthumbs=S.vthumbs||{};S.collapsed=S.collapsed||{};if(S.vtv!==2){S.vthumbs={};S.vtv=2}
+  if(!d&&S.lib)save();   // move an older saved library into the new storage
+}
 const F=id=>S.folders[id]||{};
 const setF=(id,k,v)=>{(S.folders[id]=S.folders[id]||{})[k]=v;save();render()};
 const ACC=()=>S.theme.acc||'#6c8cff';
@@ -294,7 +314,7 @@ function connect(){
     if(r.error)return alert('Sign-in failed: '+r.error);setTok(r);owner=true;await sync()}});
   tc.requestAccessToken();
 }
-async function sync(){
+async function sync(quiet){
   try{
     status('Reading your Drive…');
     const root=(await api('files/root',{fields:'id'})).id;
@@ -307,14 +327,50 @@ async function sync(){
     while(ch){ch=false;fo.forEach(f=>{if(!keep.has(f.id)&&keep.has((f.parents||[])[0])){keep.add(f.id);ch=true}})}
     const fo2=fo.filter(f=>keep.has(f.id)),me2=me.filter(m=>keep.has((m.parents||[])[0]));
     S.lib={root,delta:dl.id,folders:fo2.map(f=>({id:f.id,n:f.name,p:(f.parents||[])[0]||''})),media:me2.map(m=>({id:m.id,n:m.name,m:m.mimeType,p:(m.parents||[])[0]||'',t:m.thumbnailLink||'',c:m.createdTime||'',d:m.modifiedTime||'',s:+m.size||0}))};
-    await loadQuota();save();status('Synced '+me2.length+' items');render();
-  }catch(e){status('');alert('Could not read Drive:\n'+e.message)}
+    S.linked=true;await loadQuota();save();status('Synced '+me2.length+' items');render();
+  }catch(e){status('');if(!quiet)alert('Could not read Drive:\n'+e.message)}
 }
 
 async function loadQuota(){
   if(!token)return;
   try{const d=await api('about',{fields:'storageQuota,user(displayName)'});const q=d.storageQuota||{};
     S.quota={limit:+q.limit||0,usage:+q.usage||0,usageInDrive:+q.usageInDrive||0,trash:+q.usageInDriveTrash||0,t:Date.now(),who:(d.user&&d.user.displayName)||''};save();if(typeof renderSide==='function')renderSide()}catch(e){}
+}
+
+/* ---------- Open the app → your Drive is already there and refreshes itself ---------- */
+async function syncPublic(){   // no sign-in needed: uses the API key on folders shared as “Anyone with the link”
+  if(!S.apiKey||!S.lib||!S.lib.delta)return false;
+  try{
+    status('Updating from Drive…');
+    const delta=S.lib.delta,dn=(S.lib.folders.find(f=>f.id===delta)||{}).n||'DELTA',folders=[{id:delta,n:dn,p:S.lib.root||''}],media=[],queue=[delta];
+    while(queue.length){const id=queue.shift();let pt='';
+      do{const u=new URL('https://www.googleapis.com/drive/v3/files');
+        u.searchParams.set('q',`'${id}' in parents and trashed=false`);u.searchParams.set('fields','nextPageToken,files(id,name,mimeType,thumbnailLink,createdTime,modifiedTime,size)');
+        u.searchParams.set('pageSize','1000');u.searchParams.set('key',S.apiKey);if(pt)u.searchParams.set('pageToken',pt);
+        const r=await fetch(u);if(!r.ok)throw new Error('api '+r.status);const d=await r.json();
+        for(const f of d.files){
+          if(f.mimeType==='application/vnd.google-apps.folder'){folders.push({id:f.id,n:f.name,p:id});queue.push(f.id)}
+          else if(/^(image|video)\//.test(f.mimeType))media.push({id:f.id,n:f.name,m:f.mimeType,p:id,t:f.thumbnailLink||'',c:f.createdTime||'',d:f.modifiedTime||'',s:+f.size||0})}
+        pt=d.nextPageToken||''}while(pt)}
+    S.lib={...S.lib,folders,media};S.linked=true;save();status('');render();return true;
+  }catch(e){status('');return false}
+}
+function silentConnect(){   // reuses your earlier approval; Google closes its small window by itself
+  if(!S.cid||!window.google)return;
+  google.accounts.oauth2.initTokenClient({client_id:S.cid,scope:'https://www.googleapis.com/auth/drive.readonly',
+    callback:async r=>{if(r.error)return;setTok(r);await sync(true)},error_callback:()=>{}}).requestAccessToken({prompt:''});
+}
+function armReconnect(){   // browsers only allow that window after a click or key press, so it happens on your first one
+  if(!S.cid)return;
+  const go=ev=>{if(ev.target&&ev.target.closest&&ev.target.closest('#tools,dialog,#panel'))return;
+    removeEventListener('pointerdown',go,true);removeEventListener('keydown',go,true);silentConnect()};
+  addEventListener('pointerdown',go,true);addEventListener('keydown',go,true);
+}
+async function autoRefresh(){
+  if(!owner||!S.lib||!S.lib.delta||(S.theme.autoRefresh===0))return;
+  if(token){await sync(true);return}
+  if(S.apiKey&&await syncPublic())return;
+  armReconnect();
 }
 
 /* ---------- Data helpers ---------- */
@@ -1962,6 +2018,7 @@ function pagePanel(){openPanel('Main page',()=>{const t=S.theme;const g=(k,d)=>t
   H('Layout'),
   ...fSel('Folder list on the left',String(t.sb==null?(innerWidth>=900?1:0):t.sb),[['1','Show'],['0','Hide']],v=>setT('sb',+v)),
   ...fRange('Folder list width (or drag its edge)',g('sbw',250),200,520,10,v=>setT('sbw',v)),
+  ...fSel('Refresh my Drive automatically when the app opens',String(g('autoRefresh',1)),[['1','Yes'],['0','No']],v=>setT('autoRefresh',+v)),
   ...fSel('Show my Drive storage to visitors',String(g('quotaPub',0)),[['0','No (only me)'],['1','Yes']],v=>setT('quotaPub',+v)),
   ...fRange('Page width',g('mw',1500),900,2400,50,v=>setT('mw',v)),
   ...fRange('File list darkness',g('pdim',.45),0,.95,.05,v=>setT('pdim',v)),
@@ -1994,7 +2051,7 @@ function openSetup(){
       el('li',{},'Go to console.cloud.google.com → create a project → ',el('b',{},'APIs & Services → Library → enable “Google Drive API”'),'.'),
       el('li',{},'OAuth consent screen: choose External, fill the basics, add your own Google account under ',el('b',{},'Test users'),'. Add the scope ',el('code',{},'drive.readonly'),'.'),
       el('li',{},'Credentials → Create credentials → OAuth client ID → Web application. Under ',el('b',{},'Authorized JavaScript origins'),' add: ',el('code',{},location.origin),' (it must be http(s) — Google blocks file:// pages).'),
-      el('li',{},'Paste the Client ID below.')),inp,
+      el('li',{},'Paste the Client ID below.'),el('li',{},'Link once, then always open the app from this same address — your browser keeps the linked Drive for each address separately.')),inp,
     el('div',{class:'row',style:'display:flex;gap:8px'},el('button',{class:'pri',onclick:()=>{S.cid=inp.value.trim();tc=null;save();d.close()}},'Save'),el('button',{onclick:()=>d.close()},'Cancel')));
   d.showModal();
 }
@@ -2007,10 +2064,12 @@ function exportShare(){
 
 /* ---------- Boot ---------- */
 (async()=>{
-  load();restoreTok();
+  await loadAll();restoreTok();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if(!S.lib){try{const r=await fetch('library.json',{cache:'no-store'});if(r.ok){const d=await r.json();S.theme={...S.theme,...d.theme};S.folders=d.folders||{};S.apiKey=d.apiKey||'';S.vthumbs=d.vtv===2?(d.vthumbs||{}):{};S.lib=d.lib;S.quota=d.quota||null;owner=false}}catch{}}
   render();
   if(owner&&token&&(!S.quota||Date.now()-S.quota.t>3600e3))loadQuota();
+  autoRefresh();
 })();
 </script>
 </body>
