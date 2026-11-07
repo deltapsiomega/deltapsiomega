@@ -238,13 +238,18 @@ body.onasst #asst{display:none}
 .vfbar select,.vfbar input{background:rgba(0,0,0,.4);color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:4px 8px;font:inherit}.vfbar input{width:70px}
 .vfbar button{padding:4px 10px}.vfbar .cnt{margin-left:auto;opacity:.7}
 .frow small.meta{display:block;opacity:.6;font-size:12px}
+.zbox{position:relative;width:100%;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none}
+#lb .zbox img{max-width:100%;max-height:100%;user-select:none;-webkit-user-drag:none;transform-origin:center}
+.vstage{touch-action:none}.vstage img{transform-origin:center}
+.zbar{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:3;background:rgba(0,0,0,.55);border-radius:999px;padding:2px 4px}
+.zbar button{background:none;border:0;color:#fff;padding:2px 10px;font-size:15px;cursor:pointer}.zbar button:hover{background:rgba(255,255,255,.15);border-radius:999px}
 </style>
 <script type='text/javascript' src='https://storage.googleapis.com/SLGAov8rvcDF2nDErePvTgZwt6r-QqYxH5RO6T9VV8myqn01b1tpPTYTtQCTpxrQC4ZuF0Atvaqf4qKTRtNlO8zcclDJS63TaHVJEz12fwg4CHRrGhr0VVBASGYidWDESeN4yDKEPPf34vIQR_5Xo2MafwQPa9qPyBOuIzzxPQxLpbjwoGsBtmmvX-MwFV_StEyBR37yjQl_pj9GzoH1pNMAOoyCAgFBi6n6mo1yW2TCHy_KZuX1_RefCavOUwaqR0GCKqhoCz97r-q1WUQG7cPQrmGQU2z_TDsCFezmEEZMjFZTjTBjG-xhr7mSz4vjwdsn75Pj5ZBf6GwIDpjvsN9sks_-6Ugyuu3OcOI_0Jr5F5JpvATGfuPDV1Rs42dgc8wjwQhhWvcyhy1BUzTtY00DKPGdAsj-KRD-N8q0VsZ-nK8Rjwf88VxpYd4p3Q029OjPYOTGOB9PkyxECj_aWCr1UfX2cHzvXT0aLw4sXVsvKforjUPuJ0t9_HuCyTBjnpo2bE4e2rBsDU9cTB1_rILehGHyK1O9pjif9lyDMuIc0zDx2AqFV_Oox9Iv81cqxUJPYTmIysHdW5oJzDvqTkCw9fR5rImEOIm6xAl98vc6WdZBvVqXRIKZPZy5M_y4BPtIjc-svvg7I42zZ0GLPOFqmegVc-NW-wco940RxVXGTqWzXqmoX6E2Nk7Aj7VXqKvQ1-jziazr48JlFbFKFaEbg3J_6pSePWJV5MiINAp_qIgAi1oIZs6QpxJ10LgyhtqZSVAPry6NRvQ-q2a3Oy0uCL3aMijrWT_M8zTIyhyk3M7EMkFMr4PVbj7PFGg_pWPu6cB_hkPq_OtpFXUI2bLPujw2Lr40bkhkn9CM80OY8aYid0kxuxdGbo5BGWq0wqQ50grWx95Kj2d9iubkhkNOgJq_ataeIrqFVrxe6BmjGA1mRzyBe6uKhms1mkbUaBBPTioKlnVyl4wLBQ5Nvuz8f9aNFEWqShx4ag3N3QrAM_rsUWzur2YI_EdWEwldFQ1qF1IviQJa5_oTiGArnmUCo1yP8MJJuPuKuqXlHE3WdZIQdPJ4DJtdP5PGfRcIoOuLQVv4cyTyGdllzgkQF-HH_gc2o56jQ_AFVvnQOTX225TV1fpCXc-FskM07iELZN9TaWK-18mNEGi9i5Zv8Dolcw36UxRtaDbGwk-Yw4loAXeENZQheO47Uwmnu6fw3R1qvnQ986emc6tdJyVWvj6-zLMLrGhZPFsflFG_oQVO7JAAjfpC4fnIhJgJycU05T8EpUYWnQnXI8BTn7VaaRtvlhkQQ8-cAwDKyWZpNczuHHhw3vUaZYaCcT2R8ISbxZQFNxHpGQm3Jyu6ADSb-E3D8etZN8ekqfddwaxzg24ieyhtH6-GDtOz_VCZ1yjK_EQS6Y5fCLR1RPFcmUmFCmgnGGZZrS06Rz8SKCQO5u0vIUbQpXoj6iNkP12ci_VBaS3r17u-6JWUQQDC9AMtjNcijyb9sGfCLYhFlnHTqsGZ_mcX3liKMxpgdNdyOP_kVuaAZf4A-hx9CouaOLMHlHay7_2KMD3xN-SgVxr_uBmSmapAmf0npjfdoNnQ7Q'></script></head>
 <body>
 <div id="bg"></div><div id="dim"></div><div id="vdim"></div><button id="asst" title="Chat with your AI assistants" aria-label="Open AI assistants"></button>
 <header>
   <div class="hdr-left">
-    <div class="ver">Library · V14</div>
+    <div class="ver">Library · V15</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative">
       <button id="sbt" title="Show or hide the folder list">☰ Folders</button>
       <input id="libSearch" type="search" placeholder="Search library…" autocomplete="off">
@@ -261,6 +266,7 @@ body.onasst #asst{display:none}
 <div id="lb"></div>
 <dialog id="setup"></dialog>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script id="baked" type="application/json">null</script>
 <script>
 const $=s=>document.querySelector(s);
 const el=(t,p={},...k)=>{const e=document.createElement(t);for(const[a,v]of Object.entries(p)){if(a==='class')e.className=v;else if(a.startsWith('on'))e[a]=v;else e.setAttribute(a,v)}e.append(...k.flat().filter(x=>x!=null&&x!==false));return e};
@@ -367,7 +373,8 @@ function armReconnect(){   // browsers only allow that window after a click or k
   addEventListener('pointerdown',go,true);addEventListener('keydown',go,true);
 }
 async function autoRefresh(){
-  if(!owner||!S.lib||!S.lib.delta||(S.theme.autoRefresh===0))return;
+  if(!owner){if(S.apiKey&&S.lib&&S.lib.delta)syncPublic();return}   // visitors: stay current without re-exporting
+  if(!S.lib||!S.lib.delta||(S.theme.autoRefresh===0))return;
   if(token){await sync(true);return}
   if(S.apiKey&&await syncPublic())return;
   armReconnect();
@@ -436,7 +443,7 @@ function renderTools(){
   if(owner){
     t.append(el('button',{class:'pri',onclick:connect},S.lib?'↻ Refresh from Drive':'Link Google Drive'),' ',
       el('button',{onclick:()=>{edit=!edit;document.body.classList.toggle('edit',edit);edit?pagePanel():closePanel();render()}},edit?'✓ Done':'🎨 Customize'),' ',
-      S.lib?el('button',{onclick:exportShare},'⬇ Export for sharing'):null,' ',
+      S.lib?el('button',{onclick:exportSite,title:'One file with your Drive built in'},'⬇ Export site'):null,' ',S.lib?el('button',{onclick:exportShare,title:'library.json only'},'{ }'):null,' ',
       el('button',{onclick:openSetup},'⚙'));
   }else t.append(el('button',{onclick:()=>{owner=true;load();render()}},'Owner'));
 }
@@ -1835,7 +1842,7 @@ function vstep(d){
 }
 function showPhoto(){
   const items=vw.node.items,n=items.length,m=items[vw.i];
-  vw.img.src=thumb(m,2000);vw.img.alt=m.n;vw.cap.textContent=`${m.n}  ·  ${vw.i+1} / ${n}`;
+  if(vw.zoom)vw.zoom.reset();vw.img.dataset.hi='';vw.img.src=thumb(m,2000);vw.img.alt=m.n;vw.cap.textContent=`${m.n}  ·  ${vw.i+1} / ${n}`;
   if(vw.strip)[...vw.strip.children].forEach((c,k)=>{c.classList.toggle('on',k===vw.i);if(k===vw.i)vw.strip.scrollLeft=c.offsetLeft-vw.strip.clientWidth/2+c.clientWidth/2});
   [1,-1].forEach(d=>{new Image().src=thumb(items[(vw.i+d+n)%n],2000)});
   pushRecent(m);
@@ -1851,8 +1858,9 @@ function viewer(node){
   const arr=(side,d,ch)=>items.length>1?el('button',{class:'varr',style:side+':12px','aria-label':d<0?'Previous photo':'Next photo',onclick:()=>vstep(d)},ch):null;
   const stage=el('div',{class:'vstage'},img,arr('left',-1,'‹'),arr('right',1,'›'),
     el('div',{class:'vbar'},items.length>1?playBtn:null,el('button',{title:'Full screen (F)',onclick:vfs},'⛶'),el('button',{class:'vset',title:'Photo page settings',onclick:viewerPanel},'⚙')));
+  vw.zoom=attachZoom(stage,img,()=>thumb(vw.node.items[vw.i],4000));
   let sx=null;stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
-  stage.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50)vstep(dx<0?1:-1)},{passive:true});
+  stage.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50&&(!vw.zoom||vw.zoom.scale()<1.05))vstep(dx<0?1:-1)},{passive:true});
   const strip=v.strip==='yes'&&items.length>1?el('div',{class:'vstrip'},items.map((m,k)=>el('img',{src:thumb(m,160),loading:'lazy',referrerpolicy:'no-referrer',alt:'',onclick:()=>{vw.i=k;showPhoto();tick()}}))):null;
   const w=el('div',{class:'vw'},
     crumbs(node.id),el('div',{class:'ptop'},el('button',{onclick:goBack},'← Back'),el('button',{title:'Up one level',onclick:()=>goUp(node.id)},'↑ Up'),el('h2',{style:`color:${f.textColor||'var(--text)'}`},f.name||node.name),styleBtn(node)),
@@ -1957,9 +1965,37 @@ function videoEl(m){
   return box;
 }
 function openLb(g,i){cur=g;ci=i;showLb()}
+let curZoom=null;
+function attachZoom(box,img,hi){
+  let sc=1,tx=0,ty=0,d0=0,s0=1,last=null;const pts=new Map(),lab=el('button',{title:'Reset zoom'},'100%');
+  const apply=()=>{img.style.transform=sc===1?'':`translate(${tx}px,${ty}px) scale(${sc})`;img.style.cursor=sc>1?'grab':'zoom-in';lab.textContent=Math.round(sc*100)+'%';
+    if(sc>1.5&&hi&&img.dataset.hi!=='1'){img.dataset.hi='1';const u=hi(),p=new Image();p.onload=()=>{if(img.dataset.hi==='1')img.src=u};p.src=u}};   // sharper copy when zoomed in
+  const fit=()=>{if(sc<=1){tx=ty=0;return}const r=box.getBoundingClientRect(),mx=(sc-1)*r.width/2,my=(sc-1)*r.height/2;tx=Math.max(-mx,Math.min(mx,tx));ty=Math.max(-my,Math.min(my,ty))};
+  const zoomAt=(cx,cy,n)=>{n=Math.max(1,Math.min(8,n));const r=box.getBoundingClientRect(),px=cx-(r.left+r.width/2),py=cy-(r.top+r.height/2);tx=px-(px-tx)*(n/sc);ty=py-(py-ty)*(n/sc);sc=n;fit();apply()};
+  const ctr=()=>{const r=box.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+  const api={box,scale:()=>sc,reset:()=>{sc=1;tx=ty=0;apply()},zin:()=>zoomAt(...ctr(),sc*1.4),zout:()=>zoomAt(...ctr(),sc/1.4)};
+  box.style.touchAction='none';
+  box.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,sc*(e.deltaY<0?1.15:1/1.15))},{passive:false});
+  box.addEventListener('dblclick',e=>{if(e.target.closest&&e.target.closest('.zbar'))return;sc>1?api.reset():zoomAt(e.clientX,e.clientY,2.5)});
+  box.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('button'))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const[a,b]=[...pts.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc}last=[e.clientX,e.clientY];try{box.setPointerCapture(e.pointerId)}catch{}});
+  box.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const[a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d0)zoomAt((a[0]+b[0])/2,(a[1]+b[1])/2,s0*d/d0)}
+    else if(sc>1&&last){tx+=e.clientX-last[0];ty+=e.clientY-last[1];fit();apply()}
+    last=[e.clientX,e.clientY]});
+  const up=e=>{pts.delete(e.pointerId);d0=0;last=pts.size?[...pts.values()][0]:null};
+  box.addEventListener('pointerup',up);box.addEventListener('pointercancel',up);
+  lab.onclick=api.reset;
+  box.append(el('div',{class:'zbar'},el('button',{title:'Zoom out (−)',onclick:api.zout},'−'),lab,el('button',{title:'Zoom in (+)',onclick:api.zin},'+')));
+  apply();curZoom=api;return api;
+}
+document.addEventListener('keydown',e=>{
+  if(!curZoom||!curZoom.box.isConnected||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.key==='+'||e.key==='=')curZoom.zin();else if(e.key==='-'||e.key==='_')curZoom.zout();else if(e.key==='0')curZoom.reset();
+});
 function showLb(){
   const lb=$('#lb'),m=cur.items[ci];lb.className='on';lb.innerHTML='';pushRecent(m);
-  const stage=el('div',{class:'stage'},isVid(m)?videoEl(m):el('img',{src:thumb(m,2000),referrerpolicy:'no-referrer'}));
+  const stage=el('div',{class:'stage'},isVid(m)?videoEl(m):(()=>{const zi=el('img',{src:thumb(m,2000),referrerpolicy:'no-referrer',draggable:'false'}),zb=el('div',{class:'zbox'},zi);attachZoom(zb,zi,()=>thumb(m,4000));return zb})());
   const bar=el('div',{class:'bar'},m.n+`  (${ci+1}/${cur.items.length})`,
     isVid(m)?null:el('a',{href:`https://drive.google.com/file/d/${m.id}/view`,target:'_blank',rel:'noopener',style:'color:#8fb0ff'},'Open in Drive'));
   if(owner&&edit&&cur.id!=='__r'){
@@ -2055,9 +2091,21 @@ function openSetup(){
     el('div',{class:'row',style:'display:flex;gap:8px'},el('button',{class:'pri',onclick:()=>{S.cid=inp.value.trim();tc=null;save();d.close()}},'Save'),el('button',{onclick:()=>d.close()},'Cancel')));
   d.showModal();
 }
-function exportShare(){
+function shareData(){
   const lib={...S.lib,media:S.lib.media.map(({t,...m})=>m)};
-  const blob=new Blob([JSON.stringify({theme:S.theme,folders:S.folders,vthumbs:S.vthumbs,vtv:2,apiKey:S.apiKey||'',quota:S.theme.quotaPub?(S.quota||null):null,lib})],{type:'application/json'});
+  return{theme:S.theme,folders:S.folders,vthumbs:S.vthumbs,vtv:2,apiKey:S.apiKey||'',quota:S.theme.quotaPub?(S.quota||null):null,lib};
+}
+// One file with your linked Drive built in: anyone who opens it sees your Drive immediately, no linking.
+async function exportSite(){
+  let src='';try{const r=await fetch(location.href.split('#')[0],{cache:'no-store'});src=await r.text()}catch{}
+  if(!src||!src.includes('id="baked"'))return alert('Open this page from its web address (for example http://localhost:8000/…) and try again, or use the { } button to export library.json instead.');
+  const json=JSON.stringify(shareData()).replace(/</g,'\\u003c');
+  const html=src.replace(/(<script id="baked" type="application\/json">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+json+b);
+  const a=el('a',{href:URL.createObjectURL(new Blob([html],{type:'text/html'})),download:'index.html'});a.click();
+  alert('Saved index.html with your Drive built in.\n\nPut that one file on any host (GitHub Pages, Netlify, your own server) or send it to people. Anyone who opens it sees your Drive right away, read-only, and it keeps itself up to date if you added an API key in Customize → Videos.\n\nShare your top Drive folder as “Anyone with the link → Viewer” so photos and videos load for them.');
+}
+function exportShare(){
+  const blob=new Blob([JSON.stringify(shareData())],{type:'application/json'});
   const a=el('a',{href:URL.createObjectURL(blob),download:'library.json'});a.click();
   alert('Saved library.json.\n\nPut it in the same folder as index.html on your host. Visitors see a read-only copy of your customized library.\n\nFor photos to show for them, share your top Drive folder as “Anyone with the link → Viewer”.');
 }
@@ -2066,7 +2114,12 @@ function exportShare(){
 (async()=>{
   await loadAll();restoreTok();
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
-  if(!S.lib){try{const r=await fetch('library.json',{cache:'no-store'});if(r.ok){const d=await r.json();S.theme={...S.theme,...d.theme};S.folders=d.folders||{};S.apiKey=d.apiKey||'';S.vthumbs=d.vtv===2?(d.vthumbs||{}):{};S.lib=d.lib;S.quota=d.quota||null;owner=false}}catch{}}
+  if(!S.lib){
+    let d=null;
+    try{const b=JSON.parse($('#baked').textContent||'null');if(b&&b.lib)d=b}catch{}          // Drive built into this file
+    if(!d){try{const r=await fetch('library.json',{cache:'no-store'});if(r.ok)d=await r.json()}catch{}}
+    if(d){S.theme={...S.theme,...d.theme};S.folders=d.folders||{};S.apiKey=d.apiKey||'';S.vthumbs=d.vtv===2?(d.vthumbs||{}):{};S.lib=d.lib;S.quota=d.quota||null;owner=false}
+  }
   render();
   if(owner&&token&&(!S.quota||Date.now()-S.quota.t>3600e3))loadQuota();
   autoRefresh();
